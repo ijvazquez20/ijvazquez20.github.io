@@ -1878,6 +1878,25 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "366119399321",
   appId: "1:366119399321:web:3fef2733622361c66cad08"
 };
+const CHAR_ARRAY_DEFAULTS = {
+  loreSkills: [], feats: [], weapons: [], inventory: [], spellsKnown: [], conditions: [],
+  languages: ['Common'], familiarAbilitiesToday: [], lessonsTaken: [], staffSpells: [],
+};
+const CHAR_OBJECT_DEFAULTS = { spellSlots: {} };
+// Firebase Realtime Database silently drops any key whose value is an empty array/object (a write
+// of [] round-trips as if the key were never set), so a character field that gets emptied out by
+// play (e.g. the last spell known removed) vanishes from the saved record on the next save. Sheet
+// rendering assumes these fields always exist, so refill defaults after every read from Firebase.
+function normalizeCharacter(c) {
+  const fixed = { ...c };
+  for (const [key, def] of Object.entries(CHAR_ARRAY_DEFAULTS)) {
+    if (!Array.isArray(fixed[key])) fixed[key] = [...def];
+  }
+  for (const [key, def] of Object.entries(CHAR_OBJECT_DEFAULTS)) {
+    if (!fixed[key] || typeof fixed[key] !== 'object') fixed[key] = { ...def };
+  }
+  return fixed;
+}
 let _firebasePromise = null;
 // Lazily loads the Firebase SDK from CDN and resolves the 'characters' database ref, memoized so
 // componentDidMount and every persistChars() call share one connection instead of reinitializing.
@@ -2033,6 +2052,7 @@ class Component extends DCLogic {
       const val = snap.val();
       // RTDB stores arrays as objects when there are gaps/deletions, so normalize back to an array.
       characters = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+      characters = characters.map(normalizeCharacter);
     } catch (e) {
       serverError = true;
     }
