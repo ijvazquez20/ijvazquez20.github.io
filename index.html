@@ -1855,6 +1855,9 @@
     </sc-if>
   </div>
 </sc-if>
+<sc-if value="{{ loadingCharacters }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--color-bg);color:var(--color-text)">Loading your characters…</div>
+</sc-if>
 
 </x-dc>
 <!-- Lives outside <x-dc> on purpose: the reactive template engine re-renders its own
@@ -2074,7 +2077,7 @@ class Component extends DCLogic {
     editingSkills: false,
     editingFeats: false,
     editingCurrency: false,
-    authChecked: false, signedIn: false, authEmail: null, authError: false,
+    authChecked: false, signedIn: false, authEmail: null, authError: false, charactersLoaded: false,
   };
 
   async componentDidMount() {
@@ -2101,7 +2104,7 @@ class Component extends DCLogic {
         this.setState({ signedIn: true, authChecked: true, authEmail: user.email, authError: false });
         this.loadCharacterData();
       } else {
-        this.setState({ signedIn: false, authChecked: true, authEmail: null, characters: [] });
+        this.setState({ signedIn: false, authChecked: true, authEmail: null, characters: [], charactersLoaded: false });
       }
     });
   }
@@ -2165,7 +2168,7 @@ class Component extends DCLogic {
       const savedLog = JSON.parse(localStorage.getItem(LS_DICELOG) || 'null');
       if (Array.isArray(savedLog)) diceLog = savedLog.slice(0, DICE_LOG_MAX);
     } catch (e) {}
-    this.setState({ characters, view, activeId, openTabIds, serverError, diceLog });
+    this.setState({ characters, view, activeId, openTabIds, serverError, diceLog, charactersLoaded: true });
   };
 
   // Slides #charTabIndicator under whichever character tab is active, so the accent underline
@@ -3067,13 +3070,14 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
-    if (!s.data || !s.authChecked) return { ready: false, notReady: true, needsSignIn: false };
+    if (!s.data || !s.authChecked) return { ready: false, notReady: true, needsSignIn: false, loadingCharacters: false };
     if (!s.signedIn) {
       return {
-        ready: false, notReady: false, needsSignIn: true,
+        ready: false, notReady: false, needsSignIn: true, loadingCharacters: false,
         authError: s.authError, signIn: this.signIn,
       };
     }
+    if (!s.charactersLoaded) return { ready: false, notReady: false, needsSignIn: false, loadingCharacters: true };
     const data = s.data;
     const bf = s.bookFilters;
 
@@ -3119,7 +3123,7 @@ class Component extends DCLogic {
 
     const abilityDisplay = this.props.abilityDisplay ?? 'mod';
     let vals = {
-      ready: true, notReady: false, needsSignIn: false,
+      ready: true, notReady: false, needsSignIn: false, loadingCharacters: false,
       authEmail: s.authEmail, signOutUser: this.signOutUser,
       modOnlyDisplay: abilityDisplay === 'mod', scoreAndModDisplay: abilityDisplay !== 'mod',
       isRosterView: s.view === 'roster', isBuilderView: s.view === 'builder', isSheetView: s.view === 'sheet',
