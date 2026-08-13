@@ -38,6 +38,8 @@
       <button class="btn btn-secondary" onClick="{{ toggleDiceLog }}"><i class="ph ph-dice-six"></i>&nbsp;Dice Log</button>
       <button class="btn btn-secondary" onClick="{{ openGrantXPModal }}"><i class="ph ph-star"></i>&nbsp;Grant XP</button>
       <button class="btn btn-secondary" onClick="{{ openFullRestConfirm }}"><i class="ph ph-campfire"></i>&nbsp;Full Rest</button>
+      <span style="color:var(--color-neutral-400);font-size:13px;margin-left:var(--space-2)">{{ authEmail }}</span>
+      <button class="btn btn-secondary" onClick="{{ signOutUser }}"><i class="ph ph-sign-out"></i>&nbsp;Sign Out</button>
     </div>
   </div>
 
@@ -1845,6 +1847,15 @@
 <sc-if value="{{ notReady }}" hint-placeholder-val="{{ true }}">
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--color-bg);color:var(--color-text)">Loading Pathfinder rules data…</div>
 </sc-if>
+<sc-if value="{{ needsSignIn }}" hint-placeholder-val="{{ false }}">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-4);background:var(--color-bg);color:var(--color-text)">
+    <h1 style="font:500 22px var(--font-heading);margin:0">PF2e Character Sheets</h1>
+    <button class="btn btn-primary" onClick="{{ signIn }}"><i class="ph ph-google-logo"></i>&nbsp;Sign in with Google</button>
+    <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+      <span style="color:oklch(80% 0.12 25)">Sign-in failed or was cancelled. Try again.</span>
+    </sc-if>
+  </div>
+</sc-if>
 
 </x-dc>
 <!-- Lives outside <x-dc> on purpose: the reactive template engine re-renders its own
@@ -1897,20 +1908,46 @@ function normalizeCharacter(c) {
   }
   return fixed;
 }
+let _firebaseAppPromise = null;
+// Firebase forbids calling initializeApp() twice for the same app, so the db and auth loaders
+// below share this one memoized app instance instead of each initializing their own.
+function getFirebaseApp() {
+  if (!_firebaseAppPromise) {
+    _firebaseAppPromise = import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js')
+      .then(({ initializeApp }) => initializeApp(FIREBASE_CONFIG));
+  }
+  return _firebaseAppPromise;
+}
 let _firebasePromise = null;
 // Lazily loads the Firebase SDK from CDN and resolves the 'characters' database ref, memoized so
 // componentDidMount and every persistChars() call share one connection instead of reinitializing.
 function loadFirebase() {
   if (!_firebasePromise) {
     _firebasePromise = Promise.all([
-      import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+      getFirebaseApp(),
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js'),
-    ]).then(([{ initializeApp }, { getDatabase, ref, get, set }]) => {
-      const app = initializeApp(FIREBASE_CONFIG);
+    ]).then(([app, { getDatabase, ref, get, set }]) => {
       return { get, set, charsRef: ref(getDatabase(app), 'characters') };
     });
   }
   return _firebasePromise;
+}
+let _firebaseAuthPromise = null;
+// Lazily loads Firebase Auth, memoized the same way as loadFirebase() above.
+function loadFirebaseAuth() {
+  if (!_firebaseAuthPromise) {
+    _firebaseAuthPromise = Promise.all([
+      getFirebaseApp(),
+      import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+    ]).then(([app, mod]) => ({
+      auth: mod.getAuth(app),
+      GoogleAuthProvider: mod.GoogleAuthProvider,
+      signInWithPopup: mod.signInWithPopup,
+      onAuthStateChanged: mod.onAuthStateChanged,
+      signOut: mod.signOut,
+    }));
+  }
+  return _firebaseAuthPromise;
 }
 
 function cardStyle(selected) {
@@ -2038,12 +2075,55 @@ class Component extends DCLogic {
     editingSkills: false,
     editingFeats: false,
     editingCurrency: false,
+    authChecked: false, signedIn: false, authEmail: null, authError: false,
   };
 
   async componentDidMount() {
     const data = await import('./pf2e-data.js');
-    // Characters live in Firebase Realtime Database so the same roster shows up from any
-    // browser/device, not just this browser's localStorage.
+    let bookFilters = {};
+    data.BOOKS.forEach(b => bookFilters[b.key] = b.defaultOn);
+    try {
+      const saved = JSON.parse(localStorage.getItem(LS_BOOKS) || 'null');
+      if (saved) bookFilters = saved;
+    } catch (e) {}
+    this.setState({ data, bookFilters });
+    this.initDiceBox();
+    // Attached once for the app's whole lifetime rather than per portrait-modal-open, so dragging
+    // never accumulates listeners; both are no-ops whenever a drag isn't in progress.
+    window.addEventListener('mousemove', this.handlePortraitDragMove);
+    window.addEventListener('mouseup', this.handlePortraitDragEnd);
+
+    // Character data (and the Firebase rules guarding it) are gated behind sign-in, so nothing
+    // touches the database until we know who's asking. onAuthStateChanged fires once immediately
+    // with the current user (or null) and again on every future sign-in/out.
+    const { auth, onAuthStateChanged } = await loadFirebaseAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.setState({ signedIn: true, authChecked: true, authEmail: user.email, authError: false });
+        this.loadCharacterData();
+      } else {
+        this.setState({ signedIn: false, authChecked: true, authEmail: null, characters: [] });
+      }
+    });
+  }
+
+  signIn = async () => {
+    this.setState({ authError: false });
+    try {
+      const { auth, GoogleAuthProvider, signInWithPopup } = await loadFirebaseAuth();
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    } catch (e) {
+      this.setState({ authError: true });
+    }
+  };
+  signOutUser = async () => {
+    const { auth, signOut } = await loadFirebaseAuth();
+    await signOut(auth);
+  };
+
+  // Runs once per sign-in: loads the roster from Firebase plus everything that depends on it
+  // (legacy localStorage migration, restoring last session's open tabs, dice log).
+  loadCharacterData = async () => {
     let characters = [];
     let serverError = false;
     try {
@@ -2067,12 +2147,6 @@ class Component extends DCLogic {
         }
       } catch (e) {}
     }
-    let bookFilters = {};
-    data.BOOKS.forEach(b => bookFilters[b.key] = b.defaultOn);
-    try {
-      const saved = JSON.parse(localStorage.getItem(LS_BOOKS) || 'null');
-      if (saved) bookFilters = saved;
-    } catch (e) {}
     // Restore whichever tabs were open last session, dropping any that point at
     // characters that no longer exist (e.g. deleted from another tab/device).
     let view = 'roster', activeId = null, openTabIds = [];
@@ -2092,13 +2166,8 @@ class Component extends DCLogic {
       const savedLog = JSON.parse(localStorage.getItem(LS_DICELOG) || 'null');
       if (Array.isArray(savedLog)) diceLog = savedLog.slice(0, DICE_LOG_MAX);
     } catch (e) {}
-    this.setState({ data, characters, bookFilters, view, activeId, openTabIds, serverError, diceLog });
-    this.initDiceBox();
-    // Attached once for the app's whole lifetime rather than per portrait-modal-open, so dragging
-    // never accumulates listeners; both are no-ops whenever a drag isn't in progress.
-    window.addEventListener('mousemove', this.handlePortraitDragMove);
-    window.addEventListener('mouseup', this.handlePortraitDragEnd);
-  }
+    this.setState({ characters, view, activeId, openTabIds, serverError, diceLog });
+  };
 
   // Slides #charTabIndicator under whichever character tab is active, so the accent underline
   // animates between tabs instead of popping, and sits flush on the tab bar's bottom divider.
@@ -2999,7 +3068,13 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
-    if (!s.data) return { ready: false, notReady: true };
+    if (!s.data || !s.authChecked) return { ready: false, notReady: true, needsSignIn: false };
+    if (!s.signedIn) {
+      return {
+        ready: false, notReady: false, needsSignIn: true,
+        authError: s.authError, signIn: this.signIn,
+      };
+    }
     const data = s.data;
     const bf = s.bookFilters;
 
@@ -3045,7 +3120,8 @@ class Component extends DCLogic {
 
     const abilityDisplay = this.props.abilityDisplay ?? 'mod';
     let vals = {
-      ready: true, notReady: false,
+      ready: true, notReady: false, needsSignIn: false,
+      authEmail: s.authEmail, signOutUser: this.signOutUser,
       modOnlyDisplay: abilityDisplay === 'mod', scoreAndModDisplay: abilityDisplay !== 'mod',
       isRosterView: s.view === 'roster', isBuilderView: s.view === 'builder', isSheetView: s.view === 'sheet',
       notInRoster: s.view !== 'roster',
