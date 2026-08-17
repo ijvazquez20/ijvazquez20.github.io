@@ -1049,7 +1049,10 @@
                       </div>
                       <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ av.desc }}</div>
                       <sc-if value="{{ av.meta }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}</div>
+                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}<sc-if value="{{ av.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ av.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></sc-if></div>
+                      </sc-if>
+                      <sc-if value="{{ av.metaEmptyHeightened }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:11px;padding-top:4px"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></div>
                       </sc-if>
                     </div>
                     <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -1100,7 +1103,10 @@
                           </div>
                           <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ sp.desc }}</div>
                           <sc-if value="{{ sp.meta }}" hint-placeholder-val="{{ false }}">
-                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ sp.meta }}</div>
+                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ sp.meta }}<sc-if value="{{ sp.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ sp.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ sp.heightenLabel }}</span></sc-if></div>
+                          </sc-if>
+                          <sc-if value="{{ sp.metaEmptyHeightened }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-size:11px;padding-top:4px"><span style="color:oklch(75% 0.1 300)">{{ sp.heightenLabel }}</span></div>
                           </sc-if>
                         </div>
                         <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -3795,22 +3801,26 @@ class Component extends DCLogic {
     // Looked up by name (not spread from the stored spellsKnown entry) so it stays current even for
     // spells added to a sheet before Range/Target/Area/action existed in the data. Tradition is
     // folded into the same meta line, after Range/Target/Area, rather than shown next to the name.
-    // `effRank`, when above the spell's base rank, adds a trailing "Heightened (+N)" tag to meta.
+    // `effRank`, when above the spell's base rank, returns a separate "Heightened (+N)" label
+    // (kept apart from the plain-text meta string so it can be styled differently).
     const spellExtra = (name, effRank) => {
       const def = data.SPELLS.find(x => x.name === name);
-      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false, heightenedDamage: '' };
+      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false, heightenedDamage: '', heightenLabel: '', isHeightened: false };
       const baseRank = def.level || 1;
       const parts = [];
       if (def.range) parts.push('Range: ' + def.range);
       if (def.target) parts.push('Target: ' + def.target);
       if (def.area) parts.push('Area: ' + def.area);
       if (def.tradition) parts.push(def.tradition);
-      if (effRank != null && effRank > baseRank) parts.push(`Heightened (+${effRank - baseRank})`);
+      const hasMeta = parts.length > 0;
+      const isHeightened = effRank != null && effRank > baseRank;
       // Variable-cost spells (e.g. Heal, "1 to 3") are stored as a 'lo-hi' action code rather than
       // a single ACTION_ICONS key, and render as two icons joined by "to".
       const rangeMatch = /^(\d)-(\d)$/.exec(def.action || '');
       return {
         meta: parts.join(' · '),
+        isHeightened, heightenLabel: isHeightened ? `Heightened (+${effRank - baseRank})` : '',
+        heightenNeedsDot: hasMeta && isHeightened, metaEmptyHeightened: !hasMeta && isHeightened,
         icon: ACTION_ICONS[def.action] || '', hasIcon: !!ACTION_ICONS[def.action],
         iconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',
         iconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
@@ -3821,7 +3831,7 @@ class Component extends DCLogic {
     const spellbookRowsFull = char.spellsKnown.map((sp, i) => {
       const extra = spellExtra(sp.name, effectiveRankFor(sp));
       return {
-      name: sp.name, desc: sp.desc, meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
+      name: sp.name, desc: sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
       levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
       tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
       isHex: sp.tradition === 'Witch' && !!sp.focus,
@@ -3863,7 +3873,7 @@ class Component extends DCLogic {
         const baseSpDamage = extra.heightenedDamage || sp.damage || '';
         const spDamage = (sp.name === 'Heal' && charFeatNames.has('Healing Hands')) ? baseSpDamage.replace(/d8/g, 'd10') : baseSpDamage;
         return {
-        name: sp.name, desc: sp.desc, meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
+        name: sp.name, desc: sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
         levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
         tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
         isHex: sp.tradition === 'Witch' && !!sp.focus,
