@@ -3623,8 +3623,7 @@ class Component extends DCLogic {
       const wCategory = (w.category || '').toLowerCase();
       let wRank = wCategory === 'unarmed' ? unarmedRank : wCategory === 'martial' ? martialRank : wCategory === 'advanced' ? advancedRank : simpleRank;
       if (charDeity && w.name === charDeity.favoredWeapon) wRank = Math.max(wRank, favoredWeaponRank);
-      const PROF_BONUS_FLAT = [0, 4, 6, 8, 10];
-      const profBonus = PROF_BONUS_FLAT[wRank] || 0;
+      const profBonus = data.calcProfBonus(wRank, level);
       const potencyRune = data.POTENCY_RUNES.find(r => r.value === (w.potencyRune || 'none')) || data.POTENCY_RUNES[0];
       const strikingRune = data.STRIKING_RUNES.find(r => r.value === (w.strikingRune || 'none')) || data.STRIKING_RUNES[0];
       const itemBonus = potencyRune.bonus;
