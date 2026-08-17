@@ -608,14 +608,35 @@
             </div>
           </div>
           <div class="card" style="padding:var(--space-3);min-width:150px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center">
-            <div class="card-kicker">Saving Throws</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="card-kicker">Saving Throws</div>
+              <sc-if value="{{ editingSaves }}" hint-placeholder-val="{{ false }}">
+                <button class="btn btn-primary" style="padding:2px 8px;font-size:11px" onClick="{{ toggleEditSaves }}">Done</button>
+              </sc-if>
+              <sc-if value="{{ notEditingSaves }}" hint-placeholder-val="{{ true }}">
+                <button class="btn btn-icon" title="Edit saving throw ranks" onClick="{{ toggleEditSaves }}" style="width:24px;height:24px;padding:0"><i class="ph ph-gear-six" style="font-size:16px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+              </sc-if>
+            </div>
             <sc-for list="{{ saveRows }}" as="sv" hint-placeholder-count="3">
-              <div style="display:flex;align-items:center;gap:6px;padding:3px 0">
-                <span title="{{ sv.rankName }}" style="{{ sv.badgeStyle }}">{{ sv.badgeLabel }}</span>
-                <button class="btn btn-icon" style="width:26px;height:26px" title="Roll" onClick="{{ sv.roll }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button>
-                <span style="font:500 15px var(--font-heading);min-width:30px">{{ sv.mod }}</span>
-                <span style="font-size:12px;color:var(--color-neutral-300)">{{ sv.label }}</span>
-              </div>
+              <sc-if value="{{ notEditingSaves }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+                  <span title="{{ sv.rankName }}" style="{{ sv.badgeStyle }}">{{ sv.badgeLabel }}</span>
+                  <button class="btn btn-icon" style="width:26px;height:26px" title="Roll" onClick="{{ sv.roll }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button>
+                  <span style="font:500 15px var(--font-heading);min-width:30px">{{ sv.mod }}</span>
+                  <span style="font-size:12px;color:var(--color-neutral-300)">{{ sv.label }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ editingSaves }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:6px;padding:3px 0">
+                  <select class="input" style="width:100px;padding:2px 4px;font-size:12px" value="{{ sv.rank }}" onChange="{{ sv.setRank }}">
+                    <sc-for list="{{ skillRankOptions }}" as="ro" hint-placeholder-count="3">
+                      <option value="{{ ro.value }}">{{ ro.label }}</option>
+                    </sc-for>
+                  </select>
+                  <span style="font:500 15px var(--font-heading);min-width:30px">{{ sv.mod }}</span>
+                  <span style="font-size:12px;color:var(--color-neutral-300)">{{ sv.label }}</span>
+                </div>
+              </sc-if>
             </sc-for>
           </div>
         </div>
@@ -2081,6 +2102,7 @@ class Component extends DCLogic {
     openSkillKeys: {},
     openSpellLevels: {},
     editingSkills: false,
+    editingSaves: false,
     editingFeats: false,
     editingCurrency: false,
     authChecked: false, signedIn: false, authEmail: null, authError: false, charactersLoaded: false,
@@ -2971,6 +2993,7 @@ class Component extends DCLogic {
     return { openSkillKeys: { ...s.openSkillKeys, [charId]: { ...forChar, [key]: !forChar[key] } } };
   });
   toggleEditSkills = () => this.setState(s => ({ editingSkills: !s.editingSkills }));
+  toggleEditSaves = () => this.setState(s => ({ editingSaves: !s.editingSaves }));
   toggleEditFeats = () => this.setState(s => ({ editingFeats: !s.editingFeats }));
   toggleEditCurrency = () => this.setState(s => ({ editingCurrency: !s.editingCurrency }));
   toggleSpellLevel = (charId, key) => this.setState(s => {
@@ -3509,7 +3532,7 @@ class Component extends DCLogic {
     const saveRows = saveDefs.map(sd => {
       const rank = char.saveRanks[sd.key];
       const mod = mods[sd.ability] + data.calcProfBonus(rank, level);
-      return { label: sd.label, rank, rankName: data.RANK_NAMES[rank], badgeLabel: data.RANK_NAMES[rank][0], badgeStyle: badgeStyleFor(rank), mod: data.fmtMod(mod), roll: () => this.rollCheck(sd.label, mod) };
+      return { label: sd.label, rank, rankName: data.RANK_NAMES[rank], badgeLabel: data.RANK_NAMES[rank][0], badgeStyle: badgeStyleFor(rank), mod: data.fmtMod(mod), roll: () => this.rollCheck(sd.label, mod), setRank: (e) => this.setSaveRank(sd.key, e.target.value) };
     });
     const keyAb = char.classKeyAbility || (cls ? cls.keyAbility[0] : 'str');
     const classDCVal = 10 + mods[keyAb] + data.calcProfBonus(char.classDCRank, level);
@@ -3532,7 +3555,7 @@ class Component extends DCLogic {
     const featActionRows = char.feats.map(cf => findFeatSource(cf.name)).filter(f => f && f.action).map(f => ({ name: f.name, cost: f.action, desc: f.desc, category: 'featActions', icon: ACTION_ICONS[f.action] || '', hasIcon: !!ACTION_ICONS[f.action] }));
     // Automatic class features (e.g. a wizard's Arcane Bond, a fighter's Attack of Opportunity) can
     // carry an action too, and belong in the same accordion as feat-granted actions.
-    const classFeatureActionRows = (cls ? cls.features : []).filter(f => f.action).map(f => ({ name: f.actionName || f.name, cost: f.action, desc: f.desc, category: 'featActions', icon: ACTION_ICONS[f.action] || '', hasIcon: !!ACTION_ICONS[f.action] }));
+    const classFeatureActionRows = (cls ? cls.features : []).filter(f => f.action && (f.level == null || char.level >= f.level)).map(f => ({ name: f.actionName || f.name, cost: f.action, desc: f.desc, category: 'featActions', icon: ACTION_ICONS[f.action] || '', hasIcon: !!ACTION_ICONS[f.action] }));
     const actionRows = data.ACTIONS.filter(a => a.name !== 'Raise a Shield' || shield).map(a => ({ name: a.name, cost: a.cost, desc: a.desc, category: a.category, icon: ACTION_ICONS[a.cost] || '', hasIcon: !!ACTION_ICONS[a.cost] })).concat(featActionRows).concat(classFeatureActionRows);
     const ACTION_CAT_DEFS = [
       { key: 'basic', label: 'Basic Actions' },
@@ -3556,6 +3579,7 @@ class Component extends DCLogic {
     // have no level gate, so they're always offered.
     const skillRankOptions = rankOptions.filter(ro => ro.value <= 2 || (ro.value === 3 && level >= 7) || (ro.value === 4 && level >= 15));
     const editingSkills = s.editingSkills;
+    const editingSaves = s.editingSaves;
     const skillRows = data.SKILLS.map(sk => {
       const rank = char.skillRanks[sk.key] || 0;
       const abMod = mods[sk.ability];
@@ -3746,6 +3770,7 @@ class Component extends DCLogic {
     // Divine Font: a second, independent pool (like Focus Points) of bonus heal-or-harm slots.
     // Its size depends only on level, not on how many font spells are known.
     const fontMax = char.divineFont ? fontMaxForLevel(char.level) : 0;
+    const fontRank = maxSpellRankForLevel(char.level);
     const fontUsed = Math.min(char.fontUsed || 0, fontMax);
     const fontPips = [];
     for (let i = 0; i < fontMax; i++) {
@@ -3792,7 +3817,7 @@ class Component extends DCLogic {
     const SPELL_LEVEL_DEFS = [];
     if (spellbookRowsFull.some(r => r.cantrip)) SPELL_LEVEL_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
     if (spellbookRowsFull.some(r => r.focus)) SPELL_LEVEL_DEFS.push({ key: 'focus', label: 'Focus Spells' });
-    if (spellbookRowsFull.some(r => r.isFontEntry)) SPELL_LEVEL_DEFS.push({ key: 'font', label: 'Divine Font' });
+    if (spellbookRowsFull.some(r => r.isFontEntry)) SPELL_LEVEL_DEFS.push({ key: 'font', label: `Divine Font – Rank ${fontRank}` });
     Array.from(new Set(spellbookRowsFull.filter(r => !r.cantrip && !r.focus && !r.isFontEntry).map(r => r.level))).sort((a, b) => a - b)
       .forEach(lvl => SPELL_LEVEL_DEFS.push({ key: 'lvl' + lvl, label: 'Level ' + lvl + ' Spells', level: lvl }));
     const openSpellLevelsForChar = s.openSpellLevels[char.id] || {};
@@ -3833,7 +3858,7 @@ class Component extends DCLogic {
     const AVAILABLE_GROUP_DEFS = [];
     if (availableSpellRowsFull.some(r => r.cantrip)) AVAILABLE_GROUP_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
     if (availableSpellRowsFull.some(r => r.focus)) AVAILABLE_GROUP_DEFS.push({ key: 'focus', label: 'Focus Spells' });
-    if (availableSpellRowsFull.some(r => r.isFontEntry)) AVAILABLE_GROUP_DEFS.push({ key: 'font', label: char.divineFont === 'heal' ? 'Healing Font' : 'Harmful Font' });
+    if (availableSpellRowsFull.some(r => r.isFontEntry)) AVAILABLE_GROUP_DEFS.push({ key: 'font', label: `${char.divineFont === 'heal' ? 'Healing Font' : 'Harmful Font'} – Rank ${fontRank}` });
     Array.from(new Set(availableSpellRowsFull.filter(r => !r.cantrip && !r.focus && !r.isFontEntry).map(r => r.level))).sort((a, b) => a - b)
       .forEach(lvl => AVAILABLE_GROUP_DEFS.push({ key: 'lvl' + lvl, label: 'Level ' + lvl + ' Spells', level: lvl }));
     const availableSpellGroups = AVAILABLE_GROUP_DEFS.map(gd => {
@@ -4010,6 +4035,7 @@ class Component extends DCLogic {
       sheetTabs, isOverviewTab: sheetTab === 'overview', isFeatsTab: sheetTab === 'feats',
       isSpellsTab: sheetTab === 'spells', isInventoryTab: sheetTab === 'inventory', isNotesTab: sheetTab === 'notes',
       abilityRows, saveRows, classDCStr: data.fmtMod(classDCVal - 10) + ' (DC ' + classDCVal + ')', classDCRankName: data.RANK_NAMES[char.classDCRank], classDCBadgeLabel: data.RANK_NAMES[char.classDCRank][0], classDCBadgeStyle: badgeStyleFor(char.classDCRank),
+      editingSaves, notEditingSaves: !editingSaves, toggleEditSaves: this.toggleEditSaves,
       rankOptions, skillRankOptions, editingSkills, notEditingSkills: !editingSkills, toggleEditSkills: this.toggleEditSkills, skillRows, loreRows, actionRows, actionGroups,
       weaponRows, weaponLibOptions,
       weaponSearchText: s.weaponSearchText, weaponSearchOpen: s.weaponSearchOpen, setWeaponSearchField: this.setWeaponSearchField,
@@ -4026,6 +4052,7 @@ class Component extends DCLogic {
       hasBonusFeatGrants: bonusFeatGrants.length > 0, bonusFeatGrants,
       classFeatures: cls ? [
         ...cls.features
+          .filter(cf => cf.level == null || char.level >= cf.level)
           .filter(cf => !(char.classKey === 'wizard' && charSubclass && cf.name === 'Arcane School'))
           .filter(cf => !(char.classKey === 'wizard' && charThesis && cf.name === 'Arcane Thesis'))
           .filter(cf => !(char.classKey === 'cleric' && charSubclass && cf.name === 'Doctrine'))
@@ -4038,6 +4065,7 @@ class Component extends DCLogic {
         ...((char.classKey === 'cleric' && charSubclass) ? [{ name: `Doctrine (${charSubclass.name})`, desc: charSubclass.desc, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && hasDivineFont) ? [{ name: `Divine Font (${fontLabel})`, desc: fontLabel === 'Healing Font' ? 'Gain extra Heal spells tied to your deity to prepare and cast each day.' : 'Gain extra Harm spells tied to your deity to prepare and cast each day.', icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charDeity && charDeity.anathema) ? [{ name: 'Anathema', desc: `Acting against ${charDeity.name}'s edicts can cost you your divine powers. Anathema: ${charDeity.anathema}.`, icon: '', hasIcon: false }] : []),
+        ...((char.classKey === 'cleric' && charSubclass && charSubclass.key === 'cloistered' && char.level >= 3) ? [{ name: 'Second Doctrine', desc: 'Your proficiency rank for Fortitude saves increases to expert.', icon: '', hasIcon: false }] : []),
       ] : [],
       showSpellSlots: !!(cls && cls.spellcasting), spellbookGroups, availableSpellGroups, spellAddGroups, slotRows,
       hasStaffNexus, staffCharges, staffPreparesToday, staffPreparesMax, staffPrepareAtMax,

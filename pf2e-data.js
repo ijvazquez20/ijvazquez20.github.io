@@ -570,7 +570,11 @@ export const CLASSES = [
     skillsTrainedCount: 3, weapons: 'Expert in simple and martial weapons; trained in advanced.', armor: 'Trained in all armor.',
     proficiencies: { perception: 'Expert', saves: { fort: 'Expert', ref: 'Expert', will: 'Trained' }, skills: ['Trained in your choice of Acrobatics or Athletics', 'Trained in a number of additional skills equal to 3 plus your Intelligence modifier'], attacks: ['Expert in simple weapons', 'Expert in martial weapons', 'Trained in advanced weapons', 'Expert in unarmed attacks'], defenses: ['Trained in all armor', 'Trained in unarmored defense'], classDC: 'Trained' },
     spellcasting: null,
-    features: [{ name: "Attack of Opportunity", action: 'R', desc: "Make a reaction Strike against an adjacent foe that uses a manipulate action, moves, or leaves a square during a move action." }, { name: "Shield Block", action: 'R', desc: "Reduce damage from a hit by your shield’s Hardness using a reaction, at the cost of the shield’s Hit Points." }],
+    features: [
+      { name: "Attack of Opportunity", action: 'R', desc: "Make a reaction Strike against an adjacent foe that uses a manipulate action, moves, or leaves a square during a move action." },
+      { name: "Shield Block", action: 'R', desc: "Reduce damage from a hit by your shield’s Hardness using a reaction, at the cost of the shield’s Hit Points." },
+      { name: "Bravery", level: 3, desc: "Your Will saving throw proficiency increases to expert. When you roll a success on a Will save against a fear effect, you get a critical success instead, and you gain the frightened 1 condition when you fail a Will save against a fear effect instead of frightened 2." },
+    ],
     feats: [
       { name: 'Combat Assessment', level: 1, action: '1', desc: 'A melee Strike lets you Recall Knowledge about the target, with a bonus on a critical hit.' },
       { name: 'Double Slice', level: 1, action: '2', desc: 'Strike with two melee weapons at once, one in each hand, combining their damage on a double hit.' },
@@ -634,7 +638,11 @@ export const CLASSES = [
       { key: 'scoundrel', name: 'Scoundrel', desc: 'Use fast-talking, flattery, and a silver tongue. Trained in Deception and Diplomacy.', grantedSkills: ['deception', 'diplomacy'] },
       { key: 'thief', name: 'Thief', desc: 'Nothing beats the thrill of taking something that belongs to someone else. You might be a pickpocket working the streets, a cat burglar sneaking through windows, or even a consultant, testing your clients’ vaults for openings.  When a fight breaks out, you prefer swift, lightweight weapons, and you strike where it hurts. When you attack with a finesse melee weapon or finesse melee unarmed attack, you can add your Dexterity modifier to damage rolls instead of your Strength modifier.  You are trained in Thievery.', grantedSkills: ['thievery'] },
     ],
-    features: [{ name: "Sneak Attack (1d6)", desc: "Deal extra precision damage when Striking a flat-footed creature." }, { name: "Surprise Attack", desc: "Creatures that haven’t acted are flat-footed to you on the first round of combat." }],
+    features: [
+      { name: "Sneak Attack (1d6)", desc: "Deal extra precision damage when Striking a flat-footed creature." },
+      { name: "Surprise Attack", desc: "Creatures that haven’t acted are flat-footed to you on the first round of combat." },
+      { name: "Deny Advantage", level: 3, desc: "You're not flat-footed to creatures of a lower level than you, even from conditions or effects that would normally flat-foot you against them (such as being flanked). You can still be flat-footed to such a creature's spells and other abilities that don't key off its level." },
+    ],
     feats: [
       { name: 'Nimble Dodge', level: 1, action: 'R', desc: 'React to an incoming attack you can see with a +2 circumstance bonus to AC against it.' },
       { name: 'Overextending Feint', level: 1, reqSkills: [{ skill: 'deception', rank: 1 }], desc: 'A successful Feint instead penalizes the target’s attack rolls against you for a round. Requires trained Deception.' },
@@ -1203,6 +1211,7 @@ export const ACTIONS = [
   { name: 'Demoralize', cost: '1', category: 'specialty', desc: 'Attempt an Intimidation check to make a creature frightened.' },
   { name: 'Hide', cost: '1', category: 'specialty', desc: 'Attempt a Stealth check to become hidden from a creature.' },
   { name: 'Sneak', cost: '1', category: 'specialty', desc: 'Move stealthily while staying hidden or undetected.' },
+  { name: 'Sustain a Spell', cost: '1', category: 'specialty', desc: 'Maintain a spell you have active with the sustained trait, usually by using a specified action or manipulating a component of the spell. You must be able to see or speak, as normal for spellcasting, and the spell ends if you don’t Sustain it.' },
   { name: 'Avoid Notice', cost: '', category: 'exploration', desc: 'Move stealthily while exploring, attempting to stay undetected.' },
   { name: 'Defend', cost: '', category: 'exploration', desc: 'Stay ready to protect allies from danger while exploring.' },
   { name: 'Investigate', cost: '', category: 'exploration', desc: 'Study your surroundings for useful clues as you explore.' },
