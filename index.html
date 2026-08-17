@@ -3527,7 +3527,7 @@ class Component extends DCLogic {
     // Automatic class features (e.g. a wizard's Arcane Bond, a fighter's Attack of Opportunity) can
     // carry an action too, and belong in the same accordion as feat-granted actions.
     const classFeatureActionRows = (cls ? cls.features : []).filter(f => f.action).map(f => ({ name: f.actionName || f.name, cost: f.action, desc: f.desc, category: 'featActions', icon: ACTION_ICONS[f.action] || '', hasIcon: !!ACTION_ICONS[f.action] }));
-    const actionRows = data.ACTIONS.map(a => ({ name: a.name, cost: a.cost, desc: a.desc, category: a.category, icon: ACTION_ICONS[a.cost] || '', hasIcon: !!ACTION_ICONS[a.cost] })).concat(featActionRows).concat(classFeatureActionRows);
+    const actionRows = data.ACTIONS.filter(a => a.name !== 'Raise a Shield' || shield).map(a => ({ name: a.name, cost: a.cost, desc: a.desc, category: a.category, icon: ACTION_ICONS[a.cost] || '', hasIcon: !!ACTION_ICONS[a.cost] })).concat(featActionRows).concat(classFeatureActionRows);
     const ACTION_CAT_DEFS = [
       { key: 'basic', label: 'Basic Actions' },
       { key: 'featActions', label: 'Feat Actions' },
