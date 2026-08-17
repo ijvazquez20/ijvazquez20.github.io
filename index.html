@@ -2020,6 +2020,17 @@ function maxSpellRankForLevel(level) {
   return Math.min(10, Math.ceil((level || 1) / 2));
 }
 
+// Most damage spells follow the standard "Heightened (+1): damage increases by one die" pattern
+// (true for essentially every damage cantrip and for Heal/Harm), so a heightened rank can be
+// approximated by adding one die of the same size per rank above the spell's base rank. A handful
+// of spells deviate from this and would need a per-spell override to heighten accurately.
+function heightenDamage(baseDamage, baseRank, effRank) {
+  const m = /^(\d+)d(\d+)$/.exec(baseDamage || '');
+  if (!m) return baseDamage || '';
+  const extraDice = Math.max(0, (effRank == null ? baseRank : effRank) - baseRank);
+  return `${Number(m[1]) + extraDice}d${m[2]}`;
+}
+
 // Standard PF2e spell slots per day for a full spellcasting class: a rank grants 2 slots the level
 // it's first unlocked, then grows to 3 the level after and stays there. 10th-rank spells are a
 // special case that never grows past a single slot, even at 20th level.
@@ -3776,17 +3787,25 @@ class Component extends DCLogic {
       fontPips.push({ on: i >= fontUsed, toggle: () => this.toggleFontPip(i) });
     }
     const isFontEntry = sp => !!(sp.font && char.divineFont && sp.font === char.divineFont);
+    // A cantrip auto-heightens to half the character's level (rounded up); a Divine Font entry
+    // (Heal or Harm) auto-heightens to the caster's highest available spell rank. Both happen to
+    // resolve to the same curve, already computed above as `fontRank`. Any other known spell is
+    // cast at the rank it was prepared/learned at (no auto-heightening).
+    const effectiveRankFor = (sp) => sp.cantrip ? maxSpellRankForLevel(char.level) : isFontEntry(sp) ? fontRank : sp.level;
     // Looked up by name (not spread from the stored spellsKnown entry) so it stays current even for
     // spells added to a sheet before Range/Target/Area/action existed in the data. Tradition is
     // folded into the same meta line, after Range/Target/Area, rather than shown next to the name.
-    const spellExtra = (name) => {
+    // `effRank`, when above the spell's base rank, adds a trailing "Heightened (+N)" tag to meta.
+    const spellExtra = (name, effRank) => {
       const def = data.SPELLS.find(x => x.name === name);
-      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false };
+      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false, heightenedDamage: '' };
+      const baseRank = def.level || 1;
       const parts = [];
       if (def.range) parts.push('Range: ' + def.range);
       if (def.target) parts.push('Target: ' + def.target);
       if (def.area) parts.push('Area: ' + def.area);
       if (def.tradition) parts.push(def.tradition);
+      if (effRank != null && effRank > baseRank) parts.push(`Heightened (+${effRank - baseRank})`);
       // Variable-cost spells (e.g. Heal, "1 to 3") are stored as a 'lo-hi' action code rather than
       // a single ACTION_ICONS key, and render as two icons joined by "to".
       const rangeMatch = /^(\d)-(\d)$/.exec(def.action || '');
@@ -3796,10 +3815,11 @@ class Component extends DCLogic {
         iconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',
         iconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
         hasRangeIcon: !!rangeMatch,
+        heightenedDamage: heightenDamage(def.damage, baseRank, effRank),
       };
     };
     const spellbookRowsFull = char.spellsKnown.map((sp, i) => {
-      const extra = spellExtra(sp.name);
+      const extra = spellExtra(sp.name, effectiveRankFor(sp));
       return {
       name: sp.name, desc: sp.desc, meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
       levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
@@ -3836,9 +3856,12 @@ class Component extends DCLogic {
       .map((sp, i) => ({ i, sp }))
       .filter(({ sp }) => sp.prepared || isSpontaneousCaster || sp.focus || isFontEntry(sp))
       .map(({ sp, i }) => {
-        // Healing Hands upgrades the cleric's Heal spell from d8s to d10s.
-        const spDamage = (sp.name === 'Heal' && charFeatNames.has('Healing Hands')) ? sp.damage.replace(/d8/g, 'd10') : sp.damage;
-        const extra = spellExtra(sp.name);
+        const extra = spellExtra(sp.name, effectiveRankFor(sp));
+        // Falls back to the stored entry's damage if the spell's since been removed from data.SPELLS
+        // (see the lookup comment above). Healing Hands upgrades the cleric's Heal spell from d8s to
+        // d10s, applied after heightening has already set the dice count.
+        const baseSpDamage = extra.heightenedDamage || sp.damage || '';
+        const spDamage = (sp.name === 'Heal' && charFeatNames.has('Healing Hands')) ? baseSpDamage.replace(/d8/g, 'd10') : baseSpDamage;
         return {
         name: sp.name, desc: sp.desc, meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
         levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
