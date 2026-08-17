@@ -1138,6 +1138,27 @@ export const WEAPONS = [
   { name: 'Shuriken', book: 'player-core', category: 'Martial', damage: '1d4 P', bulk: '—', traits: 'Agile, Monk, Thrown 20ft', desc: 'A small, flat, sharp-edged throwing star flung with a flick of the wrist.' },
 ];
 
+// Named specific magic weapons (e.g. the Sparkblade). Each entry stores only the deltas layered
+// on top of a WEAPONS base entry — its fixed fundamental runes, any extra traits, and its own
+// description/special ability — rather than duplicating the base weapon's stat block.
+export const SPECIFIC_WEAPONS = [
+  { name: 'Sparkblade', book: 'player-core', baseWeapon: 'Shortsword', level: 3, potencyRune: '+1', strikingRune: 'none', traitsAdd: 'Cold Iron, Evocation, Magical', desc: 'A +1 cold iron shortsword etched with faint traces of lightning. Once per day as a single action, the wielder can target a foe within 30 feet and unleash a lightning arc that also strikes a second creature within 30 feet of the first, dealing 2d4+4 electricity damage to both (DC 19 basic Reflex save).' },
+];
+
+// Resolves a weapon name to a full weapon-like stat block, checking the mundane WEAPONS catalog
+// first and falling back to SPECIFIC_WEAPONS (merged onto their base weapon) so both can be
+// looked up interchangeably by name.
+export function findWeaponDef(name) {
+  const base = WEAPONS.find(w => w.name === name);
+  if (base) return base;
+  const sw = SPECIFIC_WEAPONS.find(s => s.name === name);
+  if (!sw) return null;
+  const baseW = WEAPONS.find(w => w.name === sw.baseWeapon);
+  if (!baseW) return null;
+  const traits = [baseW.traits && baseW.traits !== '—' ? baseW.traits : '', sw.traitsAdd].filter(Boolean).join(', ') || '—';
+  return { ...baseW, name: sw.name, traits, desc: sw.desc, isSpecific: true, potencyRune: sw.potencyRune || 'none', strikingRune: sw.strikingRune || 'none' };
+}
+
 export const ARMORS = [
   { name: 'Explorer’s Clothing', book: 'player-core', category: 'Unarmored', acBonus: 0, dexCap: 5, bulk: 'L' },
   { name: 'Padded Armor', book: 'player-core', category: 'Light', acBonus: 1, dexCap: 3, bulk: 'L' },
@@ -1320,6 +1341,7 @@ export const GEAR = [
   { name: 'Ladder Feather Token', bulk: 'L', price: '3 gp', book: 'gm-core', desc: 'You can Interact with this vibrant, colorful bird feather to make it grow much larger, transforming it permanently into a 20-foot-long wooden ladder.' },
   { name: 'Everburning Torch', bulk: 'L', price: '15 gp', book: 'gm-core', desc: 'This torch sheds light constantly, requiring no oxygen and generating no heat. The flame can be covered or hidden, but it can’t be smothered or quenched.' },
   { name: 'Mesmerizing Opal', bulk: '—', price: '7 gp', book: 'gm-core', desc: 'This silver-bound opal pendant is afire with iridescence. When you activate it, attempt a Deception check to Feint. If the outcome is a success, you get a critical success instead. If the outcome is a critical failure, you get a failure instead.' },
+  { name: 'Hand of the Mage', bulk: 'L', price: '30 gp', book: 'gm-core', desc: 'This mummified elf hand hangs on a golden chain, its gnarled fingers locked in a peculiar pattern. Activate: 2 Actions - Effect: You cast mage hand.' },
 ];
 
 export const SPELLS = [

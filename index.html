@@ -678,7 +678,7 @@
           <div class="card-kicker">Active Conditions</div>
           <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-top:6px">
             <sc-for list="{{ activeConditionRows }}" as="ac" hint-placeholder-count="1">
-              <div class="tag tag-accent" style="display:flex;align-items:center;gap:6px;padding:6px 10px">
+              <div class="tag tag-accent" style="position:relative;display:flex;align-items:center;gap:6px;padding:6px 10px" onMouseEnter="{{ ac.onEnter }}" onMouseLeave="{{ ac.onLeave }}">
                 <span>{{ ac.name }}</span>
                 <sc-if value="{{ ac.valued }}" hint-placeholder-val="{{ false }}">
                   <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.dec }}">-</button>
@@ -686,6 +686,9 @@
                   <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.inc }}">+</button>
                 </sc-if>
                 <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.remove }}"><i class="ph ph-x"></i></button>
+                <sc-if value="{{ ac.hovered }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:110%;left:0;z-index:10;background:var(--color-neutral-900);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:var(--space-3);width:240px;box-shadow:var(--shadow-lg);font-size:12px;color:var(--color-neutral-200);white-space:normal;text-align:left">{{ ac.desc }}</div>
+                </sc-if>
               </div>
             </sc-for>
           </div>
@@ -1379,7 +1382,7 @@
           <div style="display:flex;flex-wrap:wrap;gap:var(--space-3);margin-bottom:var(--space-4)">
             <sc-if value="{{ hasNoActiveConditions }}" hint-placeholder-val="{{ true }}"><p style="color:var(--color-neutral-500);margin:0">None active.</p></sc-if>
             <sc-for list="{{ activeConditionRows }}" as="ac" hint-placeholder-count="0">
-              <div class="tag tag-accent" style="display:flex;align-items:center;gap:6px;padding:8px 10px">
+              <div class="tag tag-accent" style="position:relative;display:flex;align-items:center;gap:6px;padding:8px 10px" onMouseEnter="{{ ac.onEnter }}" onMouseLeave="{{ ac.onLeave }}">
                 <span>{{ ac.name }}</span>
                 <sc-if value="{{ ac.valued }}" hint-placeholder-val="{{ false }}">
                   <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.dec }}">-</button>
@@ -1387,6 +1390,9 @@
                   <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.inc }}">+</button>
                 </sc-if>
                 <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ ac.remove }}"><i class="ph ph-x"></i></button>
+                <sc-if value="{{ ac.hovered }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;bottom:110%;left:0;z-index:10;background:var(--color-neutral-900);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:var(--space-3);width:240px;box-shadow:var(--shadow-lg);font-size:12px;color:var(--color-neutral-200)">{{ ac.desc }}</div>
+                </sc-if>
               </div>
             </sc-for>
           </div>
@@ -2795,9 +2801,9 @@ class Component extends DCLogic {
   openWeaponSearch = () => this.setState({ weaponSearchOpen: true });
   closeWeaponSearch = () => { clearTimeout(this._weaponSearchBlurTimer); this._weaponSearchBlurTimer = setTimeout(() => this.setState({ weaponSearchOpen: false }), 150); };
   addWeaponFromPick = (name) => {
-    const lib = this.state.data.WEAPONS.find(w => w.name === name);
-    const w = lib ? { ...lib } : { name, category: 'Custom', damage: '', bulk: '', traits: '' };
-    this.updateActiveChar(c => ({ ...c, weapons: [...c.weapons, { ...w, potencyRune: 'none', strikingRune: 'none' }] }));
+    const lib = this.state.data.findWeaponDef(name);
+    const w = lib ? { ...lib, potencyRune: lib.potencyRune || 'none', strikingRune: lib.strikingRune || 'none' } : { name, category: 'Custom', damage: '', bulk: '', traits: '', potencyRune: 'none', strikingRune: 'none' };
+    this.updateActiveChar(c => ({ ...c, weapons: [...c.weapons, w] }));
     this.setState({ weaponSearchText: '', weaponSearchOpen: false });
   };
   removeWeapon = (idx) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.filter((_, i) => i !== idx) }));
@@ -3579,7 +3585,7 @@ class Component extends DCLogic {
     const favoredWeaponRank = findRank(attackLines, 'favored weapon');
     const weaponRows = char.weapons.map((w, i) => {
       const finesse = /finesse/i.test(w.traits || '');
-      const wDef = data.WEAPONS.find(x => x.name === w.name);
+      const wDef = data.findWeaponDef(w.name);
       const isRanged = !!(wDef && wDef.ranged);
       const abMod = finesse ? Math.max(mods.str, mods.dex) : (isRanged ? mods.dex : mods.str);
       const abLabel = finesse ? (mods.dex > mods.str ? 'DEX' : 'STR') : (isRanged ? 'DEX' : 'STR');
@@ -3630,7 +3636,9 @@ class Component extends DCLogic {
         runeSummary, editRunes: () => this.openRuneModal(i),
       };
     });
-    const weaponLibOptions = data.WEAPONS.filter(w => bf[w.book]).sort((a, b) => a.name.localeCompare(b.name));
+    const weaponLibOptions = data.WEAPONS.filter(w => bf[w.book])
+      .concat(data.SPECIFIC_WEAPONS.filter(sw => bf[sw.book]).map(sw => data.findWeaponDef(sw.name)).filter(Boolean))
+      .sort((a, b) => a.name.localeCompare(b.name));
     const weaponSearchQuery = (s.weaponSearchText || '').trim().toLowerCase();
     const weaponSearchResults = weaponLibOptions.filter(w => !weaponSearchQuery || w.name.toLowerCase().includes(weaponSearchQuery)).slice(0, 10)
       .map(w => ({ label: `${w.name} (${w.damage})`, select: () => this.addWeaponFromPick(w.name) }));
@@ -3946,7 +3954,11 @@ class Component extends DCLogic {
     const activeKeys = char.conditions.map(cd => cd.key);
     const activeConditionRows = char.conditions.map(cd => {
       const def = data.CONDITIONS.find(c => c.key === cd.key);
-      return { name: def.name, valued: def.valued, value: cd.value, inc: () => this.setConditionValue(cd.key, 1), dec: () => this.setConditionValue(cd.key, -1), remove: () => this.removeCondition(cd.key) };
+      return {
+        name: def.name, desc: def.desc, valued: def.valued, value: cd.value,
+        hovered: s.hoveredConditionKey === cd.key, onEnter: () => this.setHoverCondition(cd.key), onLeave: () => this.setHoverCondition(null),
+        inc: () => this.setConditionValue(cd.key, 1), dec: () => this.setConditionValue(cd.key, -1), remove: () => this.removeCondition(cd.key),
+      };
     });
     const libraryConditionRows = data.CONDITIONS.filter(c => !activeKeys.includes(c.key)).map(c => ({
       name: c.name, desc: c.desc, hovered: s.hoveredConditionKey === c.key,
