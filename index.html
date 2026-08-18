@@ -984,7 +984,7 @@
             <sc-for list="{{ slotRows }}" as="sl" hint-placeholder-count="2">
               <div class="card" style="padding:var(--space-3);text-align:center;min-width:150px;height:68px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center">
                 <div class="card-kicker">Level {{ sl.lvl }}</div>
-                <div style="font:500 26px var(--font-heading)">{{ sl.displayCount }} / {{ sl.max }}</div>
+                <div style="font:500 26px var(--font-heading)">{{ sl.remaining }} / {{ sl.max }}</div>
               </div>
             </sc-for>
             <sc-if value="{{ hasDivineFont }}" hint-placeholder-val="{{ false }}">
@@ -3944,15 +3944,22 @@ class Component extends DCLogic {
       .map(sp => ({ name: sp.name, label: sp.name + ' (' + sp.tradition + ')' }));
     const slotRows = [];
     for (let r = 1; r <= maxRank; r++) {
-      const max = spellSlotMaxForRank(char.level, r);
-      const used = (char.spellSlots[r] && char.spellSlots[r].used) || 0;
-      // Prepared casters (e.g. Wizard) fill each rank's slots with specific spells ahead of time, so
-      // the summary card should show how many of that rank's known spells are currently prepared,
-      // not the cast-based "remaining" count (which only makes sense for spontaneous casters, who
-      // draw from a shared known-spell pool rather than preparing into individual slots).
-      const prepared = char.spellsKnown.filter(sp => !sp.cantrip && !sp.focus && !isFontEntry(sp) && sp.level === r && sp.prepared).length;
-      const remaining = Math.max(0, max - used);
-      slotRows.push({ lvl: r, max, remaining, prepared, displayCount: isSpontaneousCaster ? remaining : prepared });
+      if (isSpontaneousCaster) {
+        // Spontaneous casters (e.g. Sorcerer) draw from a shared known-spell pool rather than
+        // preparing individual spells, so their slots follow the standard per-day slot table.
+        const max = spellSlotMaxForRank(char.level, r);
+        const used = (char.spellSlots[r] && char.spellSlots[r].used) || 0;
+        slotRows.push({ lvl: r, max, remaining: Math.max(0, max - used) });
+      } else {
+        // Prepared casters (e.g. Wizard) track their own count: the max is simply how many spells
+        // of this rank the player has flagged Prepared on the Spellbook — no fixed slot formula —
+        // and remaining ticks down as those prepared spells are cast. Removing a prepared spell
+        // (or un-preparing it) lowers max the same way, since it's just a live count.
+        const preparedAtRank = char.spellsKnown.filter(sp => !sp.cantrip && !sp.focus && !isFontEntry(sp) && sp.level === r && sp.prepared);
+        const max = preparedAtRank.length;
+        const used = preparedAtRank.filter(sp => sp.cast).length;
+        slotRows.push({ lvl: r, max, remaining: Math.max(0, max - used) });
+      }
     }
     // Staff Nexus (Wizard arcane thesis): a makeshift staff holding a cantrip + spells the character
     // places in it. Daily preparations expend one of the character's own spell slots to add charges
