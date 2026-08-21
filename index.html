@@ -1233,6 +1233,9 @@
                       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
                         <span class="tag tag-accent">{{ pa.levelLabel }}</span>
                         <b>{{ pa.name }}</b>
+                        <sc-if value="{{ pa.hasDamage }}" hint-placeholder-val="{{ false }}">
+                          <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
+                        </sc-if>
                       </div>
                       <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
                     </div>
@@ -1266,6 +1269,9 @@
                           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
                             <span class="tag tag-accent">{{ fb.levelLabel }}</span>
                             <b>{{ fb.name }}</b>
+                            <sc-if value="{{ fb.hasDamage }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ fb.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ fb.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
+                            </sc-if>
                           </div>
                           <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ fb.desc }}</div>
                         </div>
@@ -3056,13 +3062,13 @@ class Component extends DCLogic {
   addFormulaFromPickForCategory = (key) => {
     const name = (this.state.formulaPicksByCategory || {})[key]; if (!name) return;
     const def = this.state.data.ALCHEMICAL_ITEMS.find(it => it.name === name); if (!def) return;
-    this.updateActiveChar(c => c.formulaBook.some(f => f.name === def.name) ? c : ({ ...c, formulaBook: [...c.formulaBook, { name: def.name, category: def.category, level: def.level, desc: def.desc }] }));
+    this.updateActiveChar(c => c.formulaBook.some(f => f.name === def.name) ? c : ({ ...c, formulaBook: [...c.formulaBook, { name: def.name, category: def.category, level: def.level, damage: def.damage || '', desc: def.desc }] }));
     this.setState(s => ({ formulaPicksByCategory: { ...s.formulaPicksByCategory, [key]: '' } }));
   };
   removeFormula = (idx) => this.updateActiveChar(c => ({ ...c, formulaBook: c.formulaBook.filter((_, i) => i !== idx) }));
   addToAlchemyBatch = (idx) => this.updateActiveChar(c => {
     const f = c.formulaBook[idx]; if (!f) return c;
-    return { ...c, preparedAlchemy: [...c.preparedAlchemy, { name: f.name, category: f.category, level: f.level, desc: f.desc, used: false }] };
+    return { ...c, preparedAlchemy: [...c.preparedAlchemy, { name: f.name, category: f.category, level: f.level, damage: f.damage || '', desc: f.desc, used: false }] };
   });
   removeFromAlchemyBatch = (idx) => this.updateActiveChar(c => ({ ...c, preparedAlchemy: c.preparedAlchemy.filter((_, i) => i !== idx) }));
   toggleAlchemyUsed = (idx) => this.updateActiveChar(c => ({ ...c, preparedAlchemy: c.preparedAlchemy.map((it, i) => i === idx ? { ...it, used: !it.used } : it) }));
@@ -4155,6 +4161,8 @@ class Component extends DCLogic {
     ];
     const formulaBookRowsFull = char.formulaBook.map((it, i) => ({
       name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      hasDamage: !!it.damage, damage: it.damage || '',
+      rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
       addToBatch: () => this.addToAlchemyBatch(i),
       remove: () => this.removeFormula(i),
     }));
@@ -4171,6 +4179,8 @@ class Component extends DCLogic {
     });
     const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => ({
       name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      hasDamage: !!it.damage, damage: it.damage || '',
+      rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
       used: !!it.used,
       useBtnClass: it.used ? 'btn btn-ghost' : 'btn btn-secondary',
       useLabel: it.used ? 'Used ✓' : 'Use',
