@@ -1237,6 +1237,9 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                         </sc-if>
                       </div>
+                      <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span></div>
+                      </sc-if>
                       <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
                     </div>
                     <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -1273,6 +1276,9 @@
                               <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ fb.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ fb.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                             </sc-if>
                           </div>
+                          <sc-if value="{{ fb.hasTier }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ fb.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ fb.tierMeta }}</span></div>
+                          </sc-if>
                           <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ fb.desc }}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -4164,17 +4170,36 @@ class Component extends DCLogic {
     const FORMULA_CATEGORY_DEFS = [
       { key: 'bomb', label: 'Bombs' }, { key: 'elixir', label: 'Elixirs' }, { key: 'mutagen', label: 'Mutagens' }, { key: 'poison', label: 'Poisons' }, { key: 'tool', label: 'Tools' },
     ];
-    // `desc` is looked up live against data.ALCHEMICAL_ITEMS (rather than read from the character's
-    // stored entry) so editing an item's text there is reflected immediately, matching spellExtra's
-    // desc lookup above. Falls back to the stored copy if the item's since been removed from the catalog.
-    const formulaDescFor = (name, fallback) => { const def = data.ALCHEMICAL_ITEMS.find(x => x.name === name); return def ? def.desc : fallback; };
-    const formulaBookRowsFull = char.formulaBook.map((it, i) => ({
-      name: it.name, desc: formulaDescFor(it.name, it.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
-      hasDamage: !!it.damage, damage: it.damage || '',
-      rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
+    // `desc`/`damage` are looked up live against data.ALCHEMICAL_ITEMS (rather than read from the
+    // character's stored entry) so editing an item's text there is reflected immediately, matching
+    // spellExtra's desc lookup above. Falls back to the stored copy if the item's since been removed
+    // from the catalog. For items with named tiers (Lesser/Moderate/Greater/Major, etc.), the active
+    // tier is whichever one's threshold the character's level has reached — like a heightened spell
+    // scaling to caster/slot rank rather than the spell's own base level — and its damage die replaces
+    // the base entry's.
+    const formulaExtra = (name, fallbackDesc, fallbackDamage) => {
+      const def = data.ALCHEMICAL_ITEMS.find(x => x.name === name);
+      if (!def) return { desc: fallbackDesc, damage: fallbackDamage || '', hasTier: false, tierMeta: '', isUpgradedTier: false };
+      const tiers = def.tiers || [];
+      const tier = tiers.length ? (tiers.filter(t => t.level <= char.level).slice(-1)[0] || tiers[0]) : null;
+      return {
+        desc: def.desc,
+        damage: (tier && tier.damage) || def.damage || '',
+        hasTier: !!tier,
+        tierMeta: tier ? ('Type: ' + tier.name) : '',
+        isUpgradedTier: !!(tier && tiers[0] && tier.name !== tiers[0].name),
+      };
+    };
+    const formulaBookRowsFull = char.formulaBook.map((it, i) => {
+      const extra = formulaExtra(it.name, it.desc, it.damage);
+      return {
+      name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      hasDamage: !!extra.damage, damage: extra.damage,
+      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier,
+      rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
       addToBatch: () => this.addToAlchemyBatch(i),
       remove: () => this.removeFormula(i),
-    }));
+    };});
     const openFormulaCatsForChar = s.openFormulaCats[char.id] || {};
     const formulaBookGroups = FORMULA_CATEGORY_DEFS.filter(gd => formulaBookRowsFull.some(r => r.category === gd.key)).map(gd => {
       const rows = formulaBookRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name));
@@ -4186,17 +4211,20 @@ class Component extends DCLogic {
         gridStyle: `display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:${isOpen ? '1fr' : '0fr'}`,
       };
     });
-    const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => ({
-      name: it.name, desc: formulaDescFor(it.name, it.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
-      hasDamage: !!it.damage, damage: it.damage || '',
-      rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
+    const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => {
+      const extra = formulaExtra(it.name, it.desc, it.damage);
+      return {
+      name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      hasDamage: !!extra.damage, damage: extra.damage,
+      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier,
+      rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
       used: !!it.used,
       useBtnClass: it.used ? 'btn btn-ghost' : 'btn btn-secondary',
       useLabel: it.used ? 'Used ✓' : 'Use',
       rowStyle: `padding:var(--space-3) var(--space-4);display:flex;flex-direction:row;justify-content:space-between;gap:var(--space-6)${it.used ? ';opacity:0.55' : ''}`,
       toggleUsed: () => this.toggleAlchemyUsed(i),
       remove: () => this.removeFromAlchemyBatch(i),
-    }));
+    };});
     const preparedAlchemyGroups = FORMULA_CATEGORY_DEFS.filter(gd => preparedAlchemyRowsFull.some(r => r.category === gd.key)).map(gd => ({
       key: gd.key, label: gd.label,
       rows: preparedAlchemyRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name)),
