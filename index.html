@@ -124,15 +124,20 @@
 
       <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ false }}">
         <h2 style="font:500 18px var(--font-heading)">Choose an Ancestry</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
-          <sc-for list="{{ ancestries }}" as="a" hint-placeholder-count="4">
-            <div style="{{ a.cardStyle }}" onClick="{{ a.select }}">
-              <div style="font:500 15px var(--font-heading)">{{ a.name }}</div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">HP {{ a.hp }} · Speed {{ a.speed }}ft · {{ a.size }}</div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">{{ a.traitsStr }}</div>
+        <sc-for list="{{ ancestryGroups }}" as="ag" hint-placeholder-count="2">
+          <div style="margin-bottom:var(--space-5)">
+            <div class="card-kicker" style="margin-bottom:var(--space-3)">{{ ag.bookName }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
+              <sc-for list="{{ ag.items }}" as="a" hint-placeholder-count="4">
+                <div style="{{ a.cardStyle }}" onClick="{{ a.select }}">
+                  <div style="font:500 15px var(--font-heading)">{{ a.name }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-300)">HP {{ a.hp }} · Speed {{ a.speed }}ft · {{ a.size }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-300)">{{ a.traitsStr }}</div>
+                </div>
+              </sc-for>
             </div>
-          </sc-for>
-        </div>
+          </div>
+        </sc-for>
         <sc-if value="{{ hasSelectedAncestry }}" hint-placeholder-val="{{ false }}">
           <div class="card elev-sm" style="margin-top:var(--space-6)">
             <div class="card-title">{{ selectedAncestryName }}</div>
@@ -169,15 +174,20 @@
 
       <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}">
         <h2 style="font:500 18px var(--font-heading)">Choose a Background</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
-          <sc-for list="{{ backgrounds }}" as="b" hint-placeholder-count="4">
-            <div style="{{ b.cardStyle }}" onClick="{{ b.select }}">
-              <div style="font:500 15px var(--font-heading)">{{ b.name }}</div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">Trained: {{ b.skillName }}</div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">Lore: {{ b.lore }}</div>
+        <sc-for list="{{ backgroundGroups }}" as="bg" hint-placeholder-count="2">
+          <div style="margin-bottom:var(--space-5)">
+            <div class="card-kicker" style="margin-bottom:var(--space-3)">{{ bg.bookName }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
+              <sc-for list="{{ bg.items }}" as="b" hint-placeholder-count="4">
+                <div style="{{ b.cardStyle }}" onClick="{{ b.select }}">
+                  <div style="font:500 15px var(--font-heading)">{{ b.name }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-300)">Trained: {{ b.skillName }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-300)">Lore: {{ b.lore }}</div>
+                </div>
+              </sc-for>
             </div>
-          </sc-for>
-        </div>
+          </div>
+        </sc-for>
         <sc-if value="{{ hasSelectedBackground }}" hint-placeholder-val="{{ false }}">
           <div class="card elev-sm" style="margin-top:var(--space-6)">
             <div class="card-title">{{ selectedBackgroundName }}</div>
@@ -219,15 +229,19 @@
 
       <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
         <h2 style="font:500 18px var(--font-heading)">Choose a Class</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
-          <sc-for list="{{ classes }}" as="c" hint-placeholder-count="4">
-            <div style="{{ c.cardStyle }}" onClick="{{ c.select }}">
-              <div style="font:500 15px var(--font-heading)">{{ c.name }}</div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">HP {{ c.hp }}/lvl · Key: {{ c.keyAbilityStr }}</div>
-              <div style="font-size:11px;color:var(--color-neutral-500)">{{ c.bookLabel }}</div>
+        <sc-for list="{{ classGroups }}" as="cg" hint-placeholder-count="2">
+          <div style="margin-bottom:var(--space-5)">
+            <div class="card-kicker" style="margin-bottom:var(--space-3)">{{ cg.bookName }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
+              <sc-for list="{{ cg.items }}" as="c" hint-placeholder-count="4">
+                <div style="{{ c.cardStyle }}" onClick="{{ c.select }}">
+                  <div style="font:500 15px var(--font-heading)">{{ c.name }}</div>
+                  <div style="font-size:12px;color:var(--color-neutral-300)">HP {{ c.hp }}/lvl · Key: {{ c.keyAbilityStr }}</div>
+                </div>
+              </sc-for>
             </div>
-          </sc-for>
-        </div>
+          </div>
+        </sc-for>
         <sc-if value="{{ hasSelectedClass }}" hint-placeholder-val="{{ false }}">
           <div class="card elev-sm" style="margin-top:var(--space-6)">
             <div class="card-title">{{ selectedClassName }}</div>
@@ -3356,16 +3370,18 @@ class Component extends DCLogic {
     const abilitiesList = data.ABILITIES;
     const ancestries = data.ANCESTRIES.filter(a => bf[a.book]).map(a => ({
       key: a.key, name: a.name, hp: a.hp, speed: a.speed, size: a.size, traitsStr: a.traits.join(', '),
-      cardStyle: cardStyle(draft.ancestryKey === a.key), select: () => this.selectAncestry(a.key),
+      book: a.book, cardStyle: cardStyle(draft.ancestryKey === a.key), select: () => this.selectAncestry(a.key),
     }));
+    const ancestryGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: ancestries.filter(a => a.book === bk.key) })).filter(g => g.items.length > 0);
     const selAnc = data.ANCESTRIES.find(a => a.key === draft.ancestryKey) || null;
     const heritages = selAnc ? selAnc.heritages.map((h, i) => ({ name: h.name, desc: h.desc, dotStyle: dotStyle(draft.heritageIndex === i), select: () => this.selectHeritage(i) })) : [];
     const ancestryFreeSlots = selAnc ? draft.ancestryFreeAbilities.map((v, i) => ({ num: i + 1, value: v || '', onChange: (e) => this.setAncestryFreeAbility(i, e.target.value) })) : [];
 
     const backgrounds = data.BACKGROUNDS.filter(b => bf[b.book]).map(b => ({
       key: b.key, name: b.name, skillName: data.SKILLS.find(s => s.key === b.skill).name, lore: b.lore,
-      cardStyle: cardStyle(draft.backgroundKey === b.key), select: () => this.selectBackground(b.key),
+      book: b.book, cardStyle: cardStyle(draft.backgroundKey === b.key), select: () => this.selectBackground(b.key),
     }));
+    const backgroundGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: backgrounds.filter(b => b.book === bk.key) })).filter(g => g.items.length > 0);
     const selBg = data.BACKGROUNDS.find(b => b.key === draft.backgroundKey) || null;
     const bgPair = selBg ? selBg.boosts.filter(b => b !== 'free') : [];
     const backgroundPairOptions = bgPair.map(k => ({ label: k.toUpperCase(), dotStyle: dotStyle(draft.backgroundChoiceAbility === k), select: () => this.setBackgroundChoiceAbility(k) }));
@@ -3375,9 +3391,9 @@ class Component extends DCLogic {
 
     const classes = data.CLASSES.filter(c => bf[c.book] && !c.hidden).map(c => ({
       key: c.key, name: c.name, hp: c.hp, keyAbilityStr: c.keyAbility.map(k => k.toUpperCase()).join(' or '),
-      bookLabel: data.BOOKS.find(b => b.key === c.book).name,
-      cardStyle: cardStyle(draft.classKey === c.key), select: () => this.selectClass(c.key),
+      book: c.book, cardStyle: cardStyle(draft.classKey === c.key), select: () => this.selectClass(c.key),
     }));
+    const classGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: classes.filter(c => c.book === bk.key) })).filter(g => g.items.length > 0);
     const selCls = data.CLASSES.find(c => c.key === draft.classKey) || null;
     const classKeyAbilityOptions = selCls ? selCls.keyAbility.map(k => ({ label: k.toUpperCase(), dotStyle: dotStyle(draft.classKeyAbilityChoice === k), select: () => this.setClassKeyAbility(k) })) : [];
 
@@ -3525,17 +3541,17 @@ class Component extends DCLogic {
     const reviewFeats = [draft.ancestryFeat, hasLevel1ClassFeat ? draft.classFeat : null, hasLevel1SkillFeat ? draft.skillFeat : null, selBg ? selBg.feat.name : ''].filter(Boolean).join(', ');
 
     return {
-      abilitiesList, ancestries, hasSelectedAncestry: !!selAnc, selectedAncestryName: selAnc ? selAnc.name : '',
+      abilitiesList, ancestries, ancestryGroups, hasSelectedAncestry: !!selAnc, selectedAncestryName: selAnc ? selAnc.name : '',
       ancestryAutoBoostsStr: selAnc ? (selAnc.boosts.filter(b => b !== 'free').map(k => k.toUpperCase()).join(', ') || 'None') : '',
       ancestryFlawStr: selAnc && selAnc.flaw ? selAnc.flaw.toUpperCase() : 'None',
       hasAncestryFreeSlots: ancestryFreeSlots.length > 0, ancestryFreeSlots, heritages, ancestryFeats,
-      backgrounds, hasSelectedBackground: !!selBg, selectedBackgroundName: selBg ? selBg.name : '',
+      backgrounds, backgroundGroups, hasSelectedBackground: !!selBg, selectedBackgroundName: selBg ? selBg.name : '',
       selectedBackgroundFeatName: selBg ? selBg.feat.name : '', selectedBackgroundFeatDesc: selBg ? selBg.feat.desc : '',
       selectedBackgroundSkillName: selBg ? data.SKILLS.find(s => s.key === selBg.skill).name : '', selectedBackgroundLore: selBg ? selBg.lore : '',
       hasBackgroundPair: bgPair.length > 0, backgroundPairOptions, backgroundFreeValue: draft.backgroundFreeAbility || '',
       setBackgroundFreeAbility: (e) => this.setBackgroundFreeAbility(e.target.value),
       needsAssuranceSkillChoice, assuranceSkillOptions, assuranceSkillValue: draft.assuranceSkillChoice || '', setAssuranceSkillChoice: this.setAssuranceSkillChoice,
-      classes, hasSelectedClass: !!selCls, selectedClassName: selCls ? selCls.name : '',
+      classes, classGroups, hasSelectedClass: !!selCls, selectedClassName: selCls ? selCls.name : '',
       selectedClassWeapons: selCls ? selCls.weapons : '', selectedClassArmor: selCls ? selCls.armor : '',
       selectedClassPerceptionLine: selCls ? (selCls.proficiencies.perception + ' in Perception') : '',
       selectedClassSaveLines: selCls ? [selCls.proficiencies.saves.fort + ' in Fortitude', selCls.proficiencies.saves.ref + ' in Reflex', selCls.proficiencies.saves.will + ' in Will'] : [],
