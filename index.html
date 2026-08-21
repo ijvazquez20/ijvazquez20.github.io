@@ -1197,6 +1197,88 @@
         </div>
       </sc-if>
 
+      <sc-if value="{{ isAlchemyTab }}" hint-placeholder-val="{{ false }}">
+        <h3 style="font:500 15px var(--font-heading)">Daily Resources</h3>
+        <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-4)">
+          <div class="card" style="padding:var(--space-3);text-align:center;min-width:150px;height:68px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center">
+            <div class="card-kicker">Advanced Alchemy</div>
+            <div style="font:500 26px var(--font-heading)">{{ preparedAlchemyRemaining }} / {{ preparedAlchemyCount }}</div>
+          </div>
+          <div class="card" style="padding:var(--space-3);min-width:220px;height:68px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div class="card-kicker">Versatile Vials</div>
+              <span style="font:500 16px var(--font-heading)">{{ vialsRemaining }} / {{ vialsMax }}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ vialPips }}" as="vp" hint-placeholder-count="4">
+                <input type="checkbox" checked="{{ vp.on }}" onChange="{{ vp.toggle }}" title="Versatile Vial" style="width:16px;height:16px;accent-color:var(--color-accent);cursor:pointer">
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--color-neutral-500);margin:-8px 0 var(--space-4)">Advanced Alchemy capacity is 4 + your Intelligence modifier ({{ advancedAlchemyCapacity }}); Versatile Vials regain 2 per 10 minutes of exploration, up to your maximum.</div>
+        <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:flex-start">
+        <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
+          <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);padding-top:8px">Prepared Today</div>
+          <sc-if value="{{ hasNoPreparedAlchemy }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-neutral-400)">Add formulas from your Formula Book to today’s Advanced Alchemy batch.</div>
+          </sc-if>
+          <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+            <sc-for list="{{ preparedAlchemyRows }}" as="pa" hint-placeholder-count="3">
+              <div class="card" style="{{ pa.rowStyle }}">
+                <div>
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+                    <span class="tag tag-accent">{{ pa.levelLabel }}</span>
+                    <b>{{ pa.name }}</b>
+                  </div>
+                  <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
+                  <button class="{{ pa.useBtnClass }}" onClick="{{ pa.toggleUsed }}">{{ pa.useLabel }}</button>
+                  <button class="btn btn-icon" title="Remove" onClick="{{ pa.remove }}"><i class="ph ph-trash"></i></button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
+            <span style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300)">Formula Book</span>
+            <button class="btn btn-icon" title="Add formulas" onClick="{{ openFormulaAddModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+          </div>
+          <sc-for list="{{ formulaBookGroups }}" as="grp" hint-placeholder-count="3">
+            <div style="margin-bottom:var(--space-3)">
+              <button onClick="{{ grp.toggle }}" style="display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:none;padding:8px 0;cursor:pointer;color:var(--color-text);border-bottom:1px solid var(--color-neutral-800)">
+                <i class="ph {{ grp.caretClass }}"></i>
+                <span style="font:500 14px var(--font-heading)">{{ grp.label }}</span>
+              </button>
+              <div style="{{ grp.gridStyle }}">
+                <div style="overflow:hidden">
+                  <div style="display:flex;flex-direction:column;gap:var(--space-3);padding-top:var(--space-3)">
+                    <sc-for list="{{ grp.rows }}" as="fb" hint-placeholder-count="3">
+                      <div class="card" style="padding:var(--space-4);display:flex;flex-direction:row;justify-content:space-between;gap:var(--space-6)">
+                        <div style="flex:1;min-width:0">
+                          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+                            <span class="tag tag-accent">{{ fb.levelLabel }}</span>
+                            <b>{{ fb.name }}</b>
+                          </div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ fb.desc }}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
+                          <button class="btn btn-secondary" title="Add to today's batch" onClick="{{ fb.addToBatch }}"><i class="ph ph-plus"></i></button>
+                          <button class="btn btn-icon" title="Remove" onClick="{{ fb.remove }}"><i class="ph ph-trash"></i></button>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        </div>
+      </sc-if>
+
       <sc-if value="{{ isInventoryTab }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;justify-content:flex-end;align-items:center;gap:var(--space-4);margin-bottom:var(--space-6);flex-wrap:wrap">
           <sc-for list="{{ currencyRows }}" as="cr" hint-placeholder-count="4">
@@ -1646,6 +1728,33 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ showFormulaAddModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeFormulaAddModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}">
+        <div class="dialog-title">Add Formulas</div>
+        <div class="dialog-body" style="max-height:55vh;overflow-y:auto;padding-right:2px">
+          <sc-for list="{{ formulaAddGroups }}" as="rg" hint-placeholder-count="3">
+            <div style="margin-bottom:var(--space-3)">
+              <div class="card-kicker" style="margin-bottom:4px">{{ rg.label }}</div>
+              <div style="display:flex;gap:var(--space-3)">
+                <select class="input" value="{{ rg.pick }}" onChange="{{ rg.setPick }}" style="flex:1">
+                  <option value="">Choose formula to add…</option>
+                  <sc-for list="{{ rg.options }}" as="o" hint-placeholder-count="6">
+                    <option value="{{ o.name }}">{{ o.label }}</option>
+                  </sc-for>
+                </select>
+                <button class="btn btn-secondary" onClick="{{ rg.add }}"><i class="ph ph-plus"></i>&nbsp;Add</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeFormulaAddModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ showXPModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeXPModal }}">
       <div class="dialog" onClick="{{ stopClickPropagation }}">
@@ -1927,6 +2036,7 @@ const FIREBASE_CONFIG = {
 const CHAR_ARRAY_DEFAULTS = {
   loreSkills: [], feats: [], weapons: [], inventory: [], spellsKnown: [], conditions: [],
   languages: ['Common'], familiarAbilitiesToday: [], lessonsTaken: [], staffSpells: [],
+  formulaBook: [], preparedAlchemy: [],
 };
 const CHAR_OBJECT_DEFAULTS = { spellSlots: {} };
 // Firebase Realtime Database silently drops any key whose value is an empty array/object (a write
@@ -2103,7 +2213,7 @@ function optionsForFeatGrant(spec, data, ancestry, cls, ctx, notTaken) {
 class Component extends DCLogic {
   state = {
     data: null, view: 'roster', characters: [], activeId: null, openTabIds: [],
-    bookFilters: {}, showBookFilter: false, showSpellAddModal: false, showXPModal: false, showLanguageModal: false, languagePick: '', showDeityModal: false, showPatronModal: false, showRuneModal: false, runeModalWeaponIndex: null, showPersonalDetailsModal: false, showPortraitViewModal: false, sheetTabByChar: {},
+    bookFilters: {}, showBookFilter: false, showSpellAddModal: false, showFormulaAddModal: false, formulaPicksByCategory: {}, showXPModal: false, showLanguageModal: false, languagePick: '', showDeityModal: false, showPatronModal: false, showRuneModal: false, runeModalWeaponIndex: null, showPersonalDetailsModal: false, showPortraitViewModal: false, sheetTabByChar: {},
     showGrantXPModal: false, grantXPAmount: '',
     showFullRestConfirm: false,
     showPortraitModal: false, portraitDraftSrc: null, portraitZoom: 1, portraitRotate: 0, portraitOffsetX: 0, portraitOffsetY: 0,
@@ -2118,6 +2228,7 @@ class Component extends DCLogic {
     openActionCats: {},
     openSkillKeys: {},
     openSpellLevels: {},
+    openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
     editingFeats: false,
@@ -2473,6 +2584,8 @@ class Component extends DCLogic {
   closeBookFilter = () => this.setState({ showBookFilter: false });
   openSpellAddModal = () => this.setState({ showSpellAddModal: true });
   closeSpellAddModal = () => this.setState({ showSpellAddModal: false });
+  openFormulaAddModal = () => this.setState({ showFormulaAddModal: true });
+  closeFormulaAddModal = () => this.setState({ showFormulaAddModal: false });
   openXPModal = () => this.setState({ showXPModal: true });
   closeXPModal = () => this.setState({ showXPModal: false });
   openLanguageModal = () => this.setState({ showLanguageModal: true });
@@ -2735,6 +2848,7 @@ class Component extends DCLogic {
       weapons: (draft.thesisKey === 'staff-nexus') ? [{ ...data.WEAPONS.find(w => w.name === 'Makeshift Staff'), potencyRune: 'none', strikingRune: 'none' }] : [],
       inventory: [], currency: { pp: 0, gp: 15, sp: 0, cp: 0 },
       spellsKnown, spellSlots: {},
+      formulaBook: [], preparedAlchemy: [], vialsUsed: 0,
       conditions: [], notes: '', portraitImage: null, portraitOriginal: null,
       languages: ['Common'], heroPoints: 1, familiarAbilitiesToday: [], lessonsTaken: [],
     };
@@ -2933,6 +3047,27 @@ class Component extends DCLogic {
     return { ...c, fontUsed: Math.max(0, Math.min(max, fontUsed)) };
   });
 
+  setFormulaPickForCategory = (key, val) => this.setState(s => ({ formulaPicksByCategory: { ...s.formulaPicksByCategory, [key]: val } }));
+  addFormulaFromPickForCategory = (key) => {
+    const name = (this.state.formulaPicksByCategory || {})[key]; if (!name) return;
+    const def = this.state.data.ALCHEMICAL_ITEMS.find(it => it.name === name); if (!def) return;
+    this.updateActiveChar(c => c.formulaBook.some(f => f.name === def.name) ? c : ({ ...c, formulaBook: [...c.formulaBook, { name: def.name, category: def.category, level: def.level, desc: def.desc }] }));
+    this.setState(s => ({ formulaPicksByCategory: { ...s.formulaPicksByCategory, [key]: '' } }));
+  };
+  removeFormula = (idx) => this.updateActiveChar(c => ({ ...c, formulaBook: c.formulaBook.filter((_, i) => i !== idx) }));
+  addToAlchemyBatch = (idx) => this.updateActiveChar(c => {
+    const f = c.formulaBook[idx]; if (!f) return c;
+    return { ...c, preparedAlchemy: [...c.preparedAlchemy, { name: f.name, category: f.category, level: f.level, desc: f.desc, used: false }] };
+  });
+  removeFromAlchemyBatch = (idx) => this.updateActiveChar(c => ({ ...c, preparedAlchemy: c.preparedAlchemy.filter((_, i) => i !== idx) }));
+  toggleAlchemyUsed = (idx) => this.updateActiveChar(c => ({ ...c, preparedAlchemy: c.preparedAlchemy.map((it, i) => i === idx ? { ...it, used: !it.used } : it) }));
+  toggleVialPip = (i) => this.updateActiveChar(c => {
+    const max = Math.max(0, 2 + this.state.data.calcMod(c.abilities.int));
+    const curUsed = Math.min(c.vialsUsed || 0, max);
+    const vialsUsed = i < curUsed ? i : i + 1;
+    return { ...c, vialsUsed: Math.max(0, Math.min(max, vialsUsed)) };
+  });
+
   // Staff Nexus (Wizard arcane thesis): the staff's stored spells, and its charge economy.
   setStaffSpellPick = (e) => this.setState({ staffSpellPick: e.target.value });
   addStaffSpellFromPick = () => {
@@ -3016,6 +3151,10 @@ class Component extends DCLogic {
   toggleSpellLevel = (charId, key) => this.setState(s => {
     const forChar = s.openSpellLevels[charId] || {};
     return { openSpellLevels: { ...s.openSpellLevels, [charId]: { ...forChar, [key]: !forChar[key] } } };
+  });
+  toggleFormulaCat = (charId, key) => this.setState(s => {
+    const forChar = s.openFormulaCats[charId] || {};
+    return { openFormulaCats: { ...s.openFormulaCats, [charId]: { ...forChar, [key]: !forChar[key] } } };
   });
 
   addCondition = (key) => this.updateActiveChar(c => {
@@ -3994,6 +4133,60 @@ class Component extends DCLogic {
     const cantripKnownCount = char.spellsKnown.filter(sp => sp.cantrip).length;
     const preparedCantripCount = char.spellsKnown.filter(sp => sp.cantrip && sp.prepared).length;
 
+    // Alchemist's Alchemy tab stands in for the Spells tab (see tabDefs below). Versatile Vials are
+    // a pip-tracked pool like Focus Points; Advanced Alchemy has no fixed slot table — like a prepared
+    // caster's slots (see slotRows above), its "max" is simply how many formulas are flagged into
+    // today's batch, with `advancedAlchemyCapacity` shown alongside only as a reference number.
+    const isAlchemist = !!(cls && cls.key === 'alchemist');
+    const intMod = data.calcMod(char.abilities.int);
+    const vialsMax = isAlchemist ? Math.max(0, 2 + intMod) : 0;
+    const vialsUsed = Math.min(char.vialsUsed || 0, vialsMax);
+    const vialPips = [];
+    for (let i = 0; i < vialsMax; i++) vialPips.push({ on: i >= vialsUsed, toggle: () => this.toggleVialPip(i) });
+    const advancedAlchemyCapacity = isAlchemist ? Math.max(0, 4 + intMod) : 0;
+
+    const FORMULA_CATEGORY_DEFS = [
+      { key: 'bomb', label: 'Bombs' }, { key: 'elixir', label: 'Elixirs' }, { key: 'mutagen', label: 'Mutagens' }, { key: 'poison', label: 'Poisons' }, { key: 'tool', label: 'Tools' },
+    ];
+    const formulaBookRowsFull = char.formulaBook.map((it, i) => ({
+      name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      addToBatch: () => this.addToAlchemyBatch(i),
+      remove: () => this.removeFormula(i),
+    }));
+    const openFormulaCatsForChar = s.openFormulaCats[char.id] || {};
+    const formulaBookGroups = FORMULA_CATEGORY_DEFS.filter(gd => formulaBookRowsFull.some(r => r.category === gd.key)).map(gd => {
+      const rows = formulaBookRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name));
+      const isOpen = !!openFormulaCatsForChar[gd.key];
+      return {
+        key: gd.key, label: gd.label, rows, isOpen,
+        toggle: () => this.toggleFormulaCat(char.id, gd.key),
+        caretClass: isOpen ? 'ph-caret-down' : 'ph-caret-right',
+        gridStyle: `display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:${isOpen ? '1fr' : '0fr'}`,
+      };
+    });
+    const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => ({
+      name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      used: !!it.used,
+      useBtnClass: it.used ? 'btn btn-ghost' : 'btn btn-secondary',
+      useLabel: it.used ? 'Used ✓' : 'Use',
+      rowStyle: `padding:var(--space-3) var(--space-4);display:flex;flex-direction:row;justify-content:space-between;gap:var(--space-6)${it.used ? ';opacity:0.55' : ''}`,
+      toggleUsed: () => this.toggleAlchemyUsed(i),
+      remove: () => this.removeFromAlchemyBatch(i),
+    })).sort((a, b) => a.name.localeCompare(b.name));
+    const preparedAlchemyCount = char.preparedAlchemy.length;
+    const preparedAlchemyUsedCount = char.preparedAlchemy.filter(it => it.used).length;
+    const preparedAlchemyRemaining = Math.max(0, preparedAlchemyCount - preparedAlchemyUsedCount);
+    const formulaLibAll = data.ALCHEMICAL_ITEMS.filter(it => bf[it.book] && it.level <= char.level && !char.formulaBook.some(f => f.name === it.name));
+    const formulaAddGroups = FORMULA_CATEGORY_DEFS.map(def => {
+      const options = formulaLibAll.filter(it => it.category === def.key).map(it => ({ name: it.name, label: it.name + ' (Level ' + it.level + ')' })).sort((a, b) => a.name.localeCompare(b.name));
+      return {
+        key: def.key, label: def.label, options,
+        pick: (s.formulaPicksByCategory || {})[def.key] || '',
+        setPick: (e) => this.setFormulaPickForCategory(def.key, e.target.value),
+        add: () => this.addFormulaFromPickForCategory(def.key),
+      };
+    }).filter(g => g.options.length > 0);
+
     const CURRENCY_DEFS = [
       { key: 'pp', label: 'Platinum', abbr: 'PP', bg: 'oklch(88% 0.02 250)', color: '#2a2a2e' },
       { key: 'gp', label: 'Gold', abbr: 'GP', bg: 'oklch(78% 0.15 85)', color: '#2a2005' },
@@ -4037,7 +4230,8 @@ class Component extends DCLogic {
 
     const tabDefs = [
       { key: 'overview', label: 'Skills & Actions' }, { key: 'feats', label: 'Feats & Features' },
-      { key: 'spells', label: 'Spells' }, { key: 'inventory', label: 'Inventory' }, { key: 'notes', label: 'Details' },
+      isAlchemist ? { key: 'alchemy', label: 'Alchemy' } : { key: 'spells', label: 'Spells' },
+      { key: 'inventory', label: 'Inventory' }, { key: 'notes', label: 'Details' },
     ];
     const sheetTab = s.sheetTabByChar[s.activeId] || 'overview';
     const sheetTabs = tabDefs.map(t => ({ label: t.label, btnClass: sheetTab === t.key ? 'btn btn-primary' : 'btn btn-ghost', select: () => this.setSheetTab(t.key) }));
@@ -4078,7 +4272,7 @@ class Component extends DCLogic {
       speedValue: (ancestry ? ancestry.speed : 25) + (charFeatNames.has('Fleet') ? 5 : 0),
       heroPointRows: [1, 2, 3].map(n => ({ n, checked: (char.heroPoints || 0) >= n, toggle: () => this.setHeroPoints(n) })),
       sheetTabs, isOverviewTab: sheetTab === 'overview', isFeatsTab: sheetTab === 'feats',
-      isSpellsTab: sheetTab === 'spells', isInventoryTab: sheetTab === 'inventory', isNotesTab: sheetTab === 'notes',
+      isSpellsTab: sheetTab === 'spells', isAlchemyTab: sheetTab === 'alchemy', isInventoryTab: sheetTab === 'inventory', isNotesTab: sheetTab === 'notes',
       abilityRows, saveRows, classDCStr: data.fmtMod(classDCVal - 10) + ' (DC ' + classDCVal + ')', classDCRankName: data.RANK_NAMES[char.classDCRank], classDCBadgeLabel: data.RANK_NAMES[char.classDCRank][0], classDCBadgeStyle: badgeStyleFor(char.classDCRank),
       editingSaves, notEditingSaves: !editingSaves, toggleEditSaves: this.toggleEditSaves,
       rankOptions, skillRankOptions, editingSkills, notEditingSkills: !editingSkills, toggleEditSkills: this.toggleEditSkills, skillRows, loreRows, actionRows, actionGroups,
@@ -4121,6 +4315,10 @@ class Component extends DCLogic {
       hasDivineFont, fontLabel, fontMax, fontRemaining,
       focusSpellLibOptions, focusPick: s.focusPick, setFocusPick: this.setFocusPickField, addFocusSpellFromPick: this.addFocusSpellFromPick,
       showSpellAddModal: s.showSpellAddModal, openSpellAddModal: this.openSpellAddModal, closeSpellAddModal: this.closeSpellAddModal,
+      isAlchemist, vialsMax, vialsUsed, vialsRemaining: Math.max(0, vialsMax - vialsUsed), vialPips, advancedAlchemyCapacity,
+      formulaBookGroups, preparedAlchemyRows: preparedAlchemyRowsFull, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
+      hasNoPreparedAlchemy: preparedAlchemyRowsFull.length === 0,
+      showFormulaAddModal: s.showFormulaAddModal, openFormulaAddModal: this.openFormulaAddModal, closeFormulaAddModal: this.closeFormulaAddModal, formulaAddGroups,
       showXPModal: s.showXPModal, openXPModal: this.openXPModal, closeXPModal: this.closeXPModal,
       inventoryRows, currencyRows, gearLibOptions,
       gearSearchText: s.gearSearchText, gearSearchOpen: s.gearSearchOpen, setGearSearchField: this.setGearSearchField,
