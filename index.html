@@ -1223,23 +1223,28 @@
           <sc-if value="{{ hasNoPreparedAlchemy }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:var(--color-neutral-400)">Add formulas from your Formula Book to today’s Advanced Alchemy batch.</div>
           </sc-if>
-          <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-            <sc-for list="{{ preparedAlchemyRows }}" as="pa" hint-placeholder-count="3">
-              <div class="card" style="{{ pa.rowStyle }}">
-                <div>
-                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-                    <span class="tag tag-accent">{{ pa.levelLabel }}</span>
-                    <b>{{ pa.name }}</b>
+          <sc-for list="{{ preparedAlchemyGroups }}" as="pg" hint-placeholder-count="2">
+            <div style="margin-bottom:var(--space-3)">
+              <div style="font:500 14px var(--font-heading);padding:8px 0;border-bottom:1px solid var(--color-neutral-800);margin-bottom:var(--space-3)">{{ pg.label }}</div>
+              <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+                <sc-for list="{{ pg.rows }}" as="pa" hint-placeholder-count="3">
+                  <div class="card" style="{{ pa.rowStyle }}">
+                    <div>
+                      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+                        <span class="tag tag-accent">{{ pa.levelLabel }}</span>
+                        <b>{{ pa.name }}</b>
+                      </div>
+                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
+                      <button class="{{ pa.useBtnClass }}" onClick="{{ pa.toggleUsed }}">{{ pa.useLabel }}</button>
+                      <button class="btn btn-icon" title="Remove" onClick="{{ pa.remove }}"><i class="ph ph-trash"></i></button>
+                    </div>
                   </div>
-                  <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
-                  <button class="{{ pa.useBtnClass }}" onClick="{{ pa.toggleUsed }}">{{ pa.useLabel }}</button>
-                  <button class="btn btn-icon" title="Remove" onClick="{{ pa.remove }}"><i class="ph ph-trash"></i></button>
-                </div>
+                </sc-for>
               </div>
-            </sc-for>
-          </div>
+            </div>
+          </sc-for>
         </div>
         <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
@@ -4172,7 +4177,11 @@ class Component extends DCLogic {
       rowStyle: `padding:var(--space-3) var(--space-4);display:flex;flex-direction:row;justify-content:space-between;gap:var(--space-6)${it.used ? ';opacity:0.55' : ''}`,
       toggleUsed: () => this.toggleAlchemyUsed(i),
       remove: () => this.removeFromAlchemyBatch(i),
-    })).sort((a, b) => a.name.localeCompare(b.name));
+    }));
+    const preparedAlchemyGroups = FORMULA_CATEGORY_DEFS.filter(gd => preparedAlchemyRowsFull.some(r => r.category === gd.key)).map(gd => ({
+      key: gd.key, label: gd.label,
+      rows: preparedAlchemyRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name)),
+    }));
     const preparedAlchemyCount = char.preparedAlchemy.length;
     const preparedAlchemyUsedCount = char.preparedAlchemy.filter(it => it.used).length;
     const preparedAlchemyRemaining = Math.max(0, preparedAlchemyCount - preparedAlchemyUsedCount);
@@ -4316,7 +4325,7 @@ class Component extends DCLogic {
       focusSpellLibOptions, focusPick: s.focusPick, setFocusPick: this.setFocusPickField, addFocusSpellFromPick: this.addFocusSpellFromPick,
       showSpellAddModal: s.showSpellAddModal, openSpellAddModal: this.openSpellAddModal, closeSpellAddModal: this.closeSpellAddModal,
       isAlchemist, vialsMax, vialsUsed, vialsRemaining: Math.max(0, vialsMax - vialsUsed), vialPips, advancedAlchemyCapacity,
-      formulaBookGroups, preparedAlchemyRows: preparedAlchemyRowsFull, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
+      formulaBookGroups, preparedAlchemyGroups, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
       hasNoPreparedAlchemy: preparedAlchemyRowsFull.length === 0,
       showFormulaAddModal: s.showFormulaAddModal, openFormulaAddModal: this.openFormulaAddModal, closeFormulaAddModal: this.closeFormulaAddModal, formulaAddGroups,
       showXPModal: s.showXPModal, openXPModal: this.openXPModal, closeXPModal: this.closeXPModal,
