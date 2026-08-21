@@ -191,6 +191,7 @@
         <sc-if value="{{ hasSelectedBackground }}" hint-placeholder-val="{{ false }}">
           <div class="card elev-sm" style="margin-top:var(--space-6)">
             <div class="card-title">{{ selectedBackgroundName }}</div>
+            <div class="card-body" style="color:var(--color-neutral-300)">{{ selectedBackgroundDesc }}</div>
             <div class="card-body">Trained: {{ selectedBackgroundSkillName }}, {{ selectedBackgroundLore }}</div>
             <div class="card-body">Feat: {{ selectedBackgroundFeatName }} — {{ selectedBackgroundFeatDesc }}</div>
             <sc-if value="{{ needsAssuranceSkillChoice }}" hint-placeholder-val="{{ false }}">
@@ -3550,7 +3551,7 @@ class Component extends DCLogic {
       hasAncestryFreeSlots: ancestryFreeSlots.length > 0, ancestryFreeSlots, heritages, ancestryFeats,
       backgrounds, backgroundGroups, hasSelectedBackground: !!selBg, selectedBackgroundName: selBg ? (selBg.rare ? selBg.name + ' (Rare)' : selBg.name) : '',
       selectedBackgroundFeatName: selBg ? selBg.feat.name : '', selectedBackgroundFeatDesc: selBg ? selBg.feat.desc : '',
-      selectedBackgroundSkillName: selBg ? data.SKILLS.find(s => s.key === selBg.skill).name : '', selectedBackgroundLore: selBg ? selBg.lore : '',
+      selectedBackgroundSkillName: selBg ? data.SKILLS.find(s => s.key === selBg.skill).name : '', selectedBackgroundLore: selBg ? selBg.lore : '', selectedBackgroundDesc: selBg ? selBg.desc : '',
       hasBackgroundPair: bgPair.length > 0, backgroundPairOptions, backgroundFreeValue: draft.backgroundFreeAbility || '',
       setBackgroundFreeAbility: (e) => this.setBackgroundFreeAbility(e.target.value),
       needsAssuranceSkillChoice, assuranceSkillOptions, assuranceSkillValue: draft.assuranceSkillChoice || '', setAssuranceSkillChoice: this.setAssuranceSkillChoice,
