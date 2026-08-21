@@ -246,6 +246,7 @@
         <sc-if value="{{ hasSelectedClass }}" hint-placeholder-val="{{ false }}">
           <div class="card elev-sm" style="margin-top:var(--space-6)">
             <div class="card-title">{{ selectedClassName }}</div>
+            <div class="card-body" style="color:var(--color-neutral-300)">{{ selectedClassDesc }}</div>
             <div style="margin-top:var(--space-3)">
               <div class="card-kicker">Initial Proficiencies</div>
               <p style="font-size:12px;color:var(--color-neutral-300);margin:4px 0 var(--space-3)">At 1st level, you gain the listed proficiency ranks in the following statistics. You are untrained in anything not listed unless you gain a better proficiency rank in some other way.</p>
@@ -3555,7 +3556,7 @@ class Component extends DCLogic {
       hasBackgroundPair: bgPair.length > 0, backgroundPairOptions, backgroundFreeValue: draft.backgroundFreeAbility || '',
       setBackgroundFreeAbility: (e) => this.setBackgroundFreeAbility(e.target.value),
       needsAssuranceSkillChoice, assuranceSkillOptions, assuranceSkillValue: draft.assuranceSkillChoice || '', setAssuranceSkillChoice: this.setAssuranceSkillChoice,
-      classes, classGroups, hasSelectedClass: !!selCls, selectedClassName: selCls ? selCls.name : '',
+      classes, classGroups, hasSelectedClass: !!selCls, selectedClassName: selCls ? selCls.name : '', selectedClassDesc: selCls ? selCls.desc : '',
       selectedClassWeapons: selCls ? selCls.weapons : '', selectedClassArmor: selCls ? selCls.armor : '',
       selectedClassPerceptionLine: selCls ? (selCls.proficiencies.perception + ' in Perception') : '',
       selectedClassSaveLines: selCls ? [selCls.proficiencies.saves.fort + ' in Fortitude', selCls.proficiencies.saves.ref + ' in Reflex', selCls.proficiencies.saves.will + ' in Will'] : [],
