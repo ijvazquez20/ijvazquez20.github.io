@@ -3692,7 +3692,7 @@ class Component extends DCLogic {
     const gearSearchResults = gearLibOptions.filter(g => !gearSearchQuery || g.name.toLowerCase().includes(gearSearchQuery)).slice(0, 10)
       .map(g => ({ label: `${g.name} (${g.price})`, select: () => this.addGearFromPick(g.name) }));
 
-    const featRows = char.feats.map((f, i) => {
+    const featRows = char.feats.map((f, i) => ({ f, i })).sort((a, b) => a.f.name.localeCompare(b.f.name)).map(({ f, i }) => {
       const def = findFeatDefByName(data, f.name);
       const cost = def && def.action;
       return {
@@ -4111,7 +4111,7 @@ class Component extends DCLogic {
         ...((char.classKey === 'cleric' && hasDivineFont) ? [{ name: `Divine Font (${fontLabel})`, desc: fontLabel === 'Healing Font' ? 'Gain extra Heal spells tied to your deity to prepare and cast each day.' : 'Gain extra Harm spells tied to your deity to prepare and cast each day.', icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charDeity && charDeity.anathema) ? [{ name: 'Anathema', desc: `Acting against ${charDeity.name}'s edicts can cost you your divine powers. Anathema: ${charDeity.anathema}.`, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charSubclass && charSubclass.key === 'cloistered' && char.level >= 3) ? [{ name: 'Second Doctrine', desc: 'Your proficiency rank for Fortitude saves increases to expert.', icon: '', hasIcon: false }] : []),
-      ] : [],
+      ].sort((a, b) => a.name.localeCompare(b.name)) : [],
       showSpellSlots: !!(cls && cls.spellcasting), spellbookGroups, availableSpellGroups, spellAddGroups, slotRows,
       hasStaffNexus, staffCharges, staffPreparesToday, staffPreparesMax, staffPrepareAtMax,
       staffPrepareRankVal: s.staffPrepareRank || '', setStaffPrepareRank: this.setStaffPrepareRank, prepareStaff: this.prepareStaff, undoStaffPrepare: this.undoStaffPrepare, staffPrepareRankOptions,
