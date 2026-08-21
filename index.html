@@ -123,9 +123,9 @@
       </div>
 
       <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose an Ancestry</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-8)">Choose an Ancestry</h2>
         <sc-for list="{{ ancestryGroups }}" as="ag" hint-placeholder-count="2">
-          <div style="margin-bottom:var(--space-5)">
+          <div style="margin-bottom:var(--space-8)">
             <div class="card-kicker" style="{{ ag.headerStyle }}">{{ ag.bookName }}</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
               <sc-for list="{{ ag.items }}" as="a" hint-placeholder-count="4">
@@ -173,9 +173,9 @@
       </sc-if>
 
       <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose a Background</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-8)">Choose a Background</h2>
         <sc-for list="{{ backgroundGroups }}" as="bg" hint-placeholder-count="2">
-          <div style="margin-bottom:var(--space-5)">
+          <div style="margin-bottom:var(--space-8)">
             <div class="card-kicker" style="{{ bg.headerStyle }}">{{ bg.bookName }}</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
               <sc-for list="{{ bg.items }}" as="b" hint-placeholder-count="4">
@@ -228,9 +228,9 @@
       </sc-if>
 
       <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose a Class</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-8)">Choose a Class</h2>
         <sc-for list="{{ classGroups }}" as="cg" hint-placeholder-count="2">
-          <div style="margin-bottom:var(--space-5)">
+          <div style="margin-bottom:var(--space-8)">
             <div class="card-kicker" style="{{ cg.headerStyle }}">{{ cg.bookName }}</div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,220px));gap:var(--space-4)">
               <sc-for list="{{ cg.items }}" as="c" hint-placeholder-count="4">
