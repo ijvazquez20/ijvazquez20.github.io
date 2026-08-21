@@ -3379,7 +3379,7 @@ class Component extends DCLogic {
     const ancestryFreeSlots = selAnc ? draft.ancestryFreeAbilities.map((v, i) => ({ num: i + 1, value: v || '', onChange: (e) => this.setAncestryFreeAbility(i, e.target.value) })) : [];
 
     const backgrounds = data.BACKGROUNDS.filter(b => bf[b.book]).map(b => ({
-      key: b.key, name: b.name, skillName: data.SKILLS.find(s => s.key === b.skill).name, lore: b.lore,
+      key: b.key, name: b.rare ? b.name + ' (Rare)' : b.name, skillName: data.SKILLS.find(s => s.key === b.skill).name, lore: b.lore,
       book: b.book, cardStyle: cardStyle(draft.backgroundKey === b.key), select: () => this.selectBackground(b.key),
     }));
     const backgroundGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: backgrounds.filter(b => b.book === bk.key) })).filter(g => g.items.length > 0)
@@ -3548,7 +3548,7 @@ class Component extends DCLogic {
       ancestryAutoBoostsStr: selAnc ? (selAnc.boosts.filter(b => b !== 'free').map(k => k.toUpperCase()).join(', ') || 'None') : '',
       ancestryFlawStr: selAnc && selAnc.flaw ? selAnc.flaw.toUpperCase() : 'None',
       hasAncestryFreeSlots: ancestryFreeSlots.length > 0, ancestryFreeSlots, heritages, ancestryFeats,
-      backgrounds, backgroundGroups, hasSelectedBackground: !!selBg, selectedBackgroundName: selBg ? selBg.name : '',
+      backgrounds, backgroundGroups, hasSelectedBackground: !!selBg, selectedBackgroundName: selBg ? (selBg.rare ? selBg.name + ' (Rare)' : selBg.name) : '',
       selectedBackgroundFeatName: selBg ? selBg.feat.name : '', selectedBackgroundFeatDesc: selBg ? selBg.feat.desc : '',
       selectedBackgroundSkillName: selBg ? data.SKILLS.find(s => s.key === selBg.skill).name : '', selectedBackgroundLore: selBg ? selBg.lore : '',
       hasBackgroundPair: bgPair.length > 0, backgroundPairOptions, backgroundFreeValue: draft.backgroundFreeAbility || '',
@@ -4319,7 +4319,7 @@ class Component extends DCLogic {
       startPortraitDrag: this.startPortraitDrag,
       savePortraitImage: this.savePortraitImage, removePortraitImage: this.removePortraitImage,
       ancestryName: ancestry ? ancestry.name : '?', heritageName: heritage ? heritage.name : '?',
-      backgroundName: background ? background.name : '?', className: cls ? cls.name : '?',
+      backgroundName: background ? (background.rare ? background.name + ' (Rare)' : background.name) : '?', className: cls ? cls.name : '?',
       charLevel: char.level, setLevelField: (e) => this.setLevel(e.target.value),
       charXP: char.xp || 0, setXPField: (e) => this.setXP(e.target.value),
       canLevelUp: (char.xp || 0) >= 1000 && char.level < 20, doLevelUp: this.levelUpFromXP,
