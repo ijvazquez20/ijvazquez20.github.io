@@ -3373,7 +3373,7 @@ class Component extends DCLogic {
       book: a.book, cardStyle: cardStyle(draft.ancestryKey === a.key), select: () => this.selectAncestry(a.key),
     }));
     const ancestryGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: ancestries.filter(a => a.book === bk.key) })).filter(g => g.items.length > 0)
-      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';padding-top:20px;border-top:1px solid var(--color-neutral-800)' : ''}` }));
+      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';margin-top:20px;border-top:1px solid var(--color-neutral-800);padding-top:40px' : ''}` }));
     const selAnc = data.ANCESTRIES.find(a => a.key === draft.ancestryKey) || null;
     const heritages = selAnc ? selAnc.heritages.map((h, i) => ({ name: h.name, desc: h.desc, dotStyle: dotStyle(draft.heritageIndex === i), select: () => this.selectHeritage(i) })) : [];
     const ancestryFreeSlots = selAnc ? draft.ancestryFreeAbilities.map((v, i) => ({ num: i + 1, value: v || '', onChange: (e) => this.setAncestryFreeAbility(i, e.target.value) })) : [];
@@ -3383,7 +3383,7 @@ class Component extends DCLogic {
       book: b.book, cardStyle: cardStyle(draft.backgroundKey === b.key), select: () => this.selectBackground(b.key),
     }));
     const backgroundGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: backgrounds.filter(b => b.book === bk.key) })).filter(g => g.items.length > 0)
-      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';padding-top:20px;border-top:1px solid var(--color-neutral-800)' : ''}` }));
+      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';margin-top:20px;border-top:1px solid var(--color-neutral-800);padding-top:40px' : ''}` }));
     const selBg = data.BACKGROUNDS.find(b => b.key === draft.backgroundKey) || null;
     const bgPair = selBg ? selBg.boosts.filter(b => b !== 'free') : [];
     const backgroundPairOptions = bgPair.map(k => ({ label: k.toUpperCase(), dotStyle: dotStyle(draft.backgroundChoiceAbility === k), select: () => this.setBackgroundChoiceAbility(k) }));
@@ -3396,7 +3396,7 @@ class Component extends DCLogic {
       book: c.book, cardStyle: cardStyle(draft.classKey === c.key), select: () => this.selectClass(c.key),
     }));
     const classGroups = data.BOOKS.filter(bk => bf[bk.key]).map(bk => ({ key: bk.key, bookName: bk.name, items: classes.filter(c => c.book === bk.key) })).filter(g => g.items.length > 0)
-      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';padding-top:20px;border-top:1px solid var(--color-neutral-800)' : ''}` }));
+      .map((g, i) => ({ ...g, headerStyle: `margin-bottom:var(--space-3)${i > 0 ? ';margin-top:20px;border-top:1px solid var(--color-neutral-800);padding-top:40px' : ''}` }));
     const selCls = data.CLASSES.find(c => c.key === draft.classKey) || null;
     const classKeyAbilityOptions = selCls ? selCls.keyAbility.map(k => ({ label: k.toUpperCase(), dotStyle: dotStyle(draft.classKeyAbilityChoice === k), select: () => this.setClassKeyAbility(k) })) : [];
 
