@@ -1239,7 +1239,7 @@
                       </div>
                       <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
                       <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span></div>
+                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span><sc-if value="{{ pa.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ pa.splashMeta }}</sc-if></div>
                       </sc-if>
                     </div>
                     <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -1278,7 +1278,7 @@
                           </div>
                           <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ fb.desc }}</div>
                           <sc-if value="{{ fb.hasTier }}" hint-placeholder-val="{{ false }}">
-                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ fb.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ fb.tierMeta }}</span></div>
+                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ fb.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ fb.tierMeta }}</span><sc-if value="{{ fb.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ fb.splashMeta }}</sc-if></div>
                           </sc-if>
                         </div>
                         <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
@@ -4179,7 +4179,7 @@ class Component extends DCLogic {
     // the base entry's.
     const formulaExtra = (name, fallbackDesc, fallbackDamage) => {
       const def = data.ALCHEMICAL_ITEMS.find(x => x.name === name);
-      if (!def) return { desc: fallbackDesc, damage: fallbackDamage || '', hasTier: false, tierMeta: '', isUpgradedTier: false };
+      if (!def) return { desc: fallbackDesc, damage: fallbackDamage || '', hasTier: false, tierMeta: '', isUpgradedTier: false, hasSplash: false, splashMeta: '' };
       const tiers = def.tiers || [];
       const tier = tiers.length ? (tiers.filter(t => t.level <= char.level).slice(-1)[0] || tiers[0]) : null;
       return {
@@ -4188,6 +4188,8 @@ class Component extends DCLogic {
         hasTier: !!tier,
         tierMeta: tier ? ('Type: ' + tier.name) : '',
         isUpgradedTier: !!(tier && tiers[0] && tier.name !== tiers[0].name),
+        hasSplash: !!(tier && tier.splash != null),
+        splashMeta: (tier && tier.splash != null) ? ('Splash: ' + tier.splash) : '',
       };
     };
     const formulaBookRowsFull = char.formulaBook.map((it, i) => {
@@ -4195,7 +4197,7 @@ class Component extends DCLogic {
       return {
       name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!extra.damage, damage: extra.damage,
-      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier,
+      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier, hasSplash: extra.hasSplash, splashMeta: extra.splashMeta,
       rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
       addToBatch: () => this.addToAlchemyBatch(i),
       remove: () => this.removeFormula(i),
@@ -4216,7 +4218,7 @@ class Component extends DCLogic {
       return {
       name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!extra.damage, damage: extra.damage,
-      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier,
+      hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier, hasSplash: extra.hasSplash, splashMeta: extra.splashMeta,
       rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
       used: !!it.used,
       useBtnClass: it.used ? 'btn btn-ghost' : 'btn btn-secondary',
