@@ -3955,7 +3955,11 @@ class Component extends DCLogic {
     // (kept apart from the plain-text meta string so it can be styled differently).
     const spellExtra = (name, effRank) => {
       const def = data.SPELLS.find(x => x.name === name);
-      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false, heightenedDamage: '', heightenLabel: '', isHeightened: false };
+      // `desc` is looked up live (rather than read from the character's stored spellsKnown entry) so
+      // that editing a spell's text in data.SPELLS is reflected immediately on every sheet that has
+      // it, instead of only on the next remove-and-re-add. `null` here (not '') tells callers to fall
+      // back to their stored copy when the spell can no longer be found in data.SPELLS at all.
+      if (!def) return { meta: '', icon: '', hasIcon: false, iconLow: '', iconHigh: '', hasRangeIcon: false, heightenedDamage: '', heightenLabel: '', isHeightened: false, desc: null };
       const baseRank = def.level || 1;
       const parts = [];
       if (def.range) parts.push('Range: ' + def.range);
@@ -3976,12 +3980,13 @@ class Component extends DCLogic {
         iconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
         hasRangeIcon: !!rangeMatch,
         heightenedDamage: heightenDamage(def.damage, baseRank, effRank),
+        desc: def.desc,
       };
     };
     const spellbookRowsFull = char.spellsKnown.map((sp, i) => {
       const extra = spellExtra(sp.name, effectiveRankFor(sp));
       return {
-      name: sp.name, desc: sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
+      name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
       levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
       tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
       isHex: sp.tradition === 'Witch' && !!sp.focus,
@@ -4023,7 +4028,7 @@ class Component extends DCLogic {
         const baseSpDamage = extra.heightenedDamage || sp.damage || '';
         const spDamage = (sp.name === 'Heal' && charFeatNames.has('Healing Hands')) ? baseSpDamage.replace(/d8/g, 'd10') : baseSpDamage;
         return {
-        name: sp.name, desc: sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
+        name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
         levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
         tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
         isHex: sp.tradition === 'Witch' && !!sp.focus,
@@ -4159,8 +4164,12 @@ class Component extends DCLogic {
     const FORMULA_CATEGORY_DEFS = [
       { key: 'bomb', label: 'Bombs' }, { key: 'elixir', label: 'Elixirs' }, { key: 'mutagen', label: 'Mutagens' }, { key: 'poison', label: 'Poisons' }, { key: 'tool', label: 'Tools' },
     ];
+    // `desc` is looked up live against data.ALCHEMICAL_ITEMS (rather than read from the character's
+    // stored entry) so editing an item's text there is reflected immediately, matching spellExtra's
+    // desc lookup above. Falls back to the stored copy if the item's since been removed from the catalog.
+    const formulaDescFor = (name, fallback) => { const def = data.ALCHEMICAL_ITEMS.find(x => x.name === name); return def ? def.desc : fallback; };
     const formulaBookRowsFull = char.formulaBook.map((it, i) => ({
-      name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      name: it.name, desc: formulaDescFor(it.name, it.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!it.damage, damage: it.damage || '',
       rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
       addToBatch: () => this.addToAlchemyBatch(i),
@@ -4178,7 +4187,7 @@ class Component extends DCLogic {
       };
     });
     const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => ({
-      name: it.name, desc: it.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      name: it.name, desc: formulaDescFor(it.name, it.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!it.damage, damage: it.damage || '',
       rollDmg: () => this.rollDamage('Damage: ' + it.name, it.damage, 0),
       used: !!it.used,
