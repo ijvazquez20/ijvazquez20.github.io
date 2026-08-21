@@ -774,14 +774,14 @@
                 <div style="overflow:hidden">
                   <div style="padding:0 0 var(--space-3) 20px">
                     <p style="font-size:12px;color:var(--color-neutral-300);margin:0 0 var(--space-3)">{{ sk.desc }}</p>
-                    <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400);margin:8px 0 4px">Untrained Actions</div>
+                    <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400);margin:16px 0 4px">Untrained Actions</div>
                     <sc-for list="{{ sk.untrained }}" as="ua" hint-placeholder-count="2">
                       <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
                         <div style="font-size:12px"><b>{{ ua.name }}</b><sc-if value="{{ ua.hasIcon }}" hint-placeholder-val="{{ true }}"><img src="{{ ua.icon }}" alt="{{ ua.cost }}" style="display:inline-block;height:14px;width:auto;vertical-align:middle;margin-left:4px"></sc-if> – {{ ua.desc }}</div>
                       </div>
                     </sc-for>
                     <sc-if value="{{ sk.trained.length }}" hint-placeholder-val="{{ false }}">
-                      <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400);margin:8px 0 4px">Trained Actions</div>
+                      <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400);margin:16px 0 4px">Trained Actions</div>
                       <sc-for list="{{ sk.trained }}" as="ta" hint-placeholder-count="1">
                         <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px">
                           <div style="font-size:12px"><b>{{ ta.name }}</b><sc-if value="{{ ta.hasIcon }}" hint-placeholder-val="{{ true }}"><img src="{{ ta.icon }}" alt="{{ ta.cost }}" style="display:inline-block;height:14px;width:auto;vertical-align:middle;margin-left:4px"></sc-if> – {{ ta.desc }}</div>
