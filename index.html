@@ -123,7 +123,7 @@
       </div>
 
       <sc-if value="{{ isStep0 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading)">Choose an Ancestry</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose an Ancestry</h2>
         <sc-for list="{{ ancestryGroups }}" as="ag" hint-placeholder-count="2">
           <div style="margin-bottom:var(--space-5)">
             <div class="card-kicker" style="{{ ag.headerStyle }}">{{ ag.bookName }}</div>
@@ -173,7 +173,7 @@
       </sc-if>
 
       <sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading)">Choose a Background</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose a Background</h2>
         <sc-for list="{{ backgroundGroups }}" as="bg" hint-placeholder-count="2">
           <div style="margin-bottom:var(--space-5)">
             <div class="card-kicker" style="{{ bg.headerStyle }}">{{ bg.bookName }}</div>
@@ -228,7 +228,7 @@
       </sc-if>
 
       <sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
-        <h2 style="font:500 18px var(--font-heading)">Choose a Class</h2>
+        <h2 style="font:500 18px var(--font-heading);margin-bottom:var(--space-5)">Choose a Class</h2>
         <sc-for list="{{ classGroups }}" as="cg" hint-placeholder-count="2">
           <div style="margin-bottom:var(--space-5)">
             <div class="card-kicker" style="{{ cg.headerStyle }}">{{ cg.bookName }}</div>
