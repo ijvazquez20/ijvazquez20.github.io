@@ -1246,7 +1246,9 @@ export const WEAPONS = [
 // on top of a WEAPONS base entry — its fixed fundamental runes, any extra traits, and its own
 // description/special ability — rather than duplicating the base weapon's stat block.
 export const SPECIFIC_WEAPONS = [
-  { name: 'Sparkblade', book: 'player-core', baseWeapon: 'Shortsword', level: 3, potencyRune: '+1', strikingRune: 'none', traitsAdd: 'Cold Iron, Evocation, Magical', desc: 'Faint, delicate etchings of lightning trace across the blade of this +1 cold iron shortsword. Once per day, you can spend 1 action to cast \'Electric Arc\' at a foe within 30 feet of you and shoot an arc of lightning from the blade. This lightning can leap from your chosen foe to another creature you choose within 30 feet, dealing 2d4+4 electricity damage to each creature (DC 19 basic Reflex save).' },
+  { name: 'Sparkblade', book: 'player-core', baseWeapon: 'Shortsword', level: 3, potencyRune: '+1', strikingRune: 'none', traitsAdd: 'Cold Iron, Evocation, Magical', desc: 'Faint, delicate etchings of lightning trace across the blade of this +1 cold iron shortsword. Once per day, you can spend 1 action to cast \'Electric Arc\' at a foe within 30 feet of you and shoot an arc of lightning from the blade. This lightning can leap from your chosen foe to another creature you choose within 30 feet, dealing 2d4+4 electricity damage to each creature (DC 19 basic Reflex save).', activations: [
+    { name: 'Sparkblade Arc', cost: '1', frequency: 'once per day', uses: 1, damage: '2d4+4', save: 'DC 19 basic Reflex', range: '30 feet', desc: "Shoot an arc of lightning from the blade at a foe within 30 feet (as Electric Arc). The lightning can leap to a second creature within 30 feet, dealing 2d4+4 electricity damage to each." },
+  ] },
 ];
 
 // Resolves a weapon name to a full weapon-like stat block, checking the mundane WEAPONS catalog
@@ -1260,7 +1262,7 @@ export function findWeaponDef(name) {
   const baseW = WEAPONS.find(w => w.name === sw.baseWeapon);
   if (!baseW) return null;
   const traits = [baseW.traits && baseW.traits !== '—' ? baseW.traits : '', sw.traitsAdd].filter(Boolean).join(', ') || '—';
-  return { ...baseW, name: sw.name, traits, desc: sw.desc, isSpecific: true, potencyRune: sw.potencyRune || 'none', strikingRune: sw.strikingRune || 'none' };
+  return { ...baseW, name: sw.name, traits, desc: sw.desc, isSpecific: true, potencyRune: sw.potencyRune || 'none', strikingRune: sw.strikingRune || 'none', activations: sw.activations || [] };
 }
 
 export const ARMORS = [

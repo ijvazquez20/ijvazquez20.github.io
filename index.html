@@ -1410,10 +1410,47 @@
                         </sc-for>
                       </div></td>
                       <td style="white-space:nowrap">
+                        <sc-if value="{{ w.hasActivations }}" hint-placeholder-val="{{ false }}">
+                          <button class="btn btn-icon" title="Activated abilities" onClick="{{ w.toggleActivations }}"><i class="ph {{ w.activationsCaretClass }}" style="font-size:16px;color:var(--color-accent-300)"></i></button>
+                        </sc-if>
                         <button class="btn btn-icon" title="Runes: {{ w.runeSummary }}" onClick="{{ w.editRunes }}"><i class="ph ph-gear-six" style="font-size:16px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
                         <button class="btn btn-icon" title="Remove" onClick="{{ w.remove }}"><i class="ph ph-trash"></i></button>
                       </td>
                     </tr>
+                    <sc-if value="{{ w.hasActivations }}" hint-placeholder-val="{{ false }}">
+                      <tr>
+                        <td colSpan="6" style="padding:0;border:none">
+                          <div style="{{ w.activationsGridStyle }}">
+                            <div style="overflow:hidden">
+                              <div style="background:var(--color-neutral-900);border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);padding:var(--space-2) var(--space-3);margin:0 0 var(--space-2)">
+                                <sc-for list="{{ w.activations }}" as="act" hint-placeholder-count="1">
+                                  <div style="{{ act.rowStyle }}">
+                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                                      <sc-if value="{{ act.hasIcon }}" hint-placeholder-val="{{ true }}">
+                                        <img src="{{ act.icon }}" alt="{{ act.cost }}" style="height:18px;width:auto;vertical-align:middle;flex:none">
+                                      </sc-if>
+                                      <b>{{ act.name }}</b>
+                                      <sc-if value="{{ act.hasDamage }}" hint-placeholder-val="{{ false }}">
+                                        <span style="font-size:12px;color:var(--color-neutral-300)">{{ act.damage }}</span>
+                                        <button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ act.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button>
+                                      </sc-if>
+                                      <button class="{{ act.useBtnClass }}" style="padding:2px 10px;font-size:12px" onClick="{{ act.toggleUse }}">{{ act.useLabel }}</button>
+                                      <sc-if value="{{ act.hasUsesLabel }}" hint-placeholder-val="{{ false }}">
+                                        <span style="font-size:11px;color:var(--color-neutral-400)">{{ act.usesLabel }}</span>
+                                      </sc-if>
+                                    </div>
+                                    <div style="font-size:12px;color:var(--color-neutral-300);margin-top:2px">{{ act.desc }}</div>
+                                    <sc-if value="{{ act.hasMeta }}" hint-placeholder-val="{{ false }}">
+                                      <div style="font-size:11px;color:var(--color-neutral-400);margin-top:2px">{{ act.meta }}</div>
+                                    </sc-if>
+                                  </div>
+                                </sc-for>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </sc-if>
                   </sc-for>
                 </tbody>
               </table>
@@ -2062,7 +2099,7 @@ const CHAR_ARRAY_DEFAULTS = {
   languages: ['Common'], familiarAbilitiesToday: [], lessonsTaken: [], staffSpells: [],
   formulaBook: [], preparedAlchemy: [],
 };
-const CHAR_OBJECT_DEFAULTS = { spellSlots: {} };
+const CHAR_OBJECT_DEFAULTS = { spellSlots: {}, itemActivationsUsed: {} };
 // Firebase Realtime Database silently drops any key whose value is an empty array/object (a write
 // of [] round-trips as if the key were never set), so a character field that gets emptied out by
 // play (e.g. the last spell known removed) vanishes from the saved record on the next save. Sheet
@@ -2252,6 +2289,7 @@ class Component extends DCLogic {
     openActionCats: {},
     openSkillKeys: {},
     openSpellLevels: {},
+    expandedWeaponActivations: {},
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -2506,7 +2544,7 @@ class Component extends DCLogic {
         const hpMax = this.computeHpMax(c);
         const hpCurrent = Math.min(hpMax, (c.hpCurrent || 0) + healAmt);
         const spellsKnown = c.spellsKnown.map(sp => (sp.focus || sp.cantrip) ? sp : { ...sp, cast: false });
-        return { ...c, hpCurrent, spellsKnown, spellSlots: {}, fontUsed: 0 };
+        return { ...c, hpCurrent, spellsKnown, spellSlots: {}, fontUsed: 0, itemActivationsUsed: {} };
       });
       this.persistChars(characters);
       return { characters, showFullRestConfirm: false };
@@ -2871,7 +2909,7 @@ class Component extends DCLogic {
       armorKey: null, shieldKey: null, shieldHpCurrent: null, acOverride: '',
       weapons: (draft.thesisKey === 'staff-nexus') ? [{ ...data.WEAPONS.find(w => w.name === 'Makeshift Staff'), potencyRune: 'none', strikingRune: 'none' }] : [],
       inventory: [], currency: { pp: 0, gp: 15, sp: 0, cp: 0 },
-      spellsKnown, spellSlots: {},
+      spellsKnown, spellSlots: {}, itemActivationsUsed: {},
       formulaBook: [], preparedAlchemy: [], vialsUsed: 0,
       conditions: [], notes: '', portraitImage: null, portraitOriginal: null,
       languages: ['Common'], heroPoints: 1, familiarAbilitiesToday: [], lessonsTaken: [],
@@ -3023,6 +3061,19 @@ class Component extends DCLogic {
   };
   removeSpell = (idx) => this.updateActiveChar(c => ({ ...c, spellsKnown: c.spellsKnown.filter((_, i) => i !== idx) }));
   togglePrepared = (idx) => this.updateActiveChar(c => ({ ...c, spellsKnown: c.spellsKnown.map((sp, i) => i === idx ? { ...sp, prepared: !sp.prepared } : sp) }));
+  // Activated item abilities (e.g. the Sparkblade's once-per-day lightning arc). Tracked per
+  // character in itemActivationsUsed, keyed by "<weapon name>::<activation name>" with a count so
+  // items that allow more than one use per day work too. Clicking Use when already spent toggles
+  // it back (misclick recovery), mirroring the spell Cast toggle. Full Rest clears the map.
+  useItemActivation = (key, max) => this.updateActiveChar(c => {
+    const used = (c.itemActivationsUsed || {})[key] || 0;
+    const next = used >= max ? 0 : used + 1;
+    return { ...c, itemActivationsUsed: { ...(c.itemActivationsUsed || {}), [key]: next } };
+  });
+  toggleWeaponActivations = (charId, idx) => this.setState(s => {
+    const forChar = s.expandedWeaponActivations[charId] || {};
+    return { expandedWeaponActivations: { ...s.expandedWeaponActivations, [charId]: { ...forChar, [idx]: !forChar[idx] } } };
+  });
   toggleCast = (idx) => this.updateActiveChar(c => {
     const target = c.spellsKnown[idx]; if (!target) return c;
     const willCast = !target.cast;
@@ -3832,6 +3883,33 @@ class Component extends DCLogic {
       // Looked up by name (not spread from char.weapons[i]) so it stays current even for weapons
       // added to the sheet before descriptions existed in the data.
       const weaponDesc = (wDef || {}).desc || '';
+      // Activated item abilities exposed by specific magic weapons (e.g. the Sparkblade). Rendered as
+      // a collapsible sub-row under the weapon; each ability with a daily frequency tracks its own
+      // "used today" count in char.itemActivationsUsed and is refreshed by Full Rest.
+      const activationDefs = ((wDef || {}).activations) || [];
+      const activationsExpanded = !!(s.expandedWeaponActivations[char.id] || {})[i];
+      const activationRows = activationDefs.map(act => {
+        const tracked = /day/i.test(act.frequency || '');
+        const maxUses = act.uses || 1;
+        const usedKey = w.name + '::' + act.name;
+        const usedCount = (char.itemActivationsUsed || {})[usedKey] || 0;
+        const spent = tracked && usedCount >= maxUses;
+        const metaBits = [act.range ? 'Range ' + act.range : '', act.save || ''].filter(Boolean).join(' · ');
+        return {
+          name: act.name, desc: act.desc || '',
+          cost: act.cost || '', icon: ACTION_ICONS[act.cost] || '', hasIcon: !!ACTION_ICONS[act.cost],
+          meta: metaBits, hasMeta: !!metaBits,
+          hasDamage: !!act.damage, damage: act.damage || '',
+          rollDmg: () => this.rollDamage(w.name + ': ' + act.name, act.damage || '', 0),
+          tracked, spent,
+          useLabel: spent ? 'Used ✓' : 'Use',
+          useBtnClass: spent ? 'btn btn-ghost' : 'btn btn-secondary',
+          usesLabel: (tracked && maxUses > 1) ? (usedCount + ' / ' + maxUses + ' today') : (tracked ? (act.frequency || 'once per day') : ''),
+          hasUsesLabel: tracked,
+          toggleUse: () => this.useItemActivation(usedKey, maxUses),
+          rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (spent ? ';opacity:0.55' : ''),
+        };
+      });
       return {
         name: w.name, damage: w.damage, damageDice, damageTypeName, traits: w.traits, traitList, atkMod: data.fmtMod(atk), atkBreakdown, dmgBreakdown,
         hovered: s.hoveredWeaponIndex === i, onEnter: () => this.setHoverWeapon(i), onLeave: () => this.setHoverWeapon(null),
@@ -3842,6 +3920,10 @@ class Component extends DCLogic {
         rollDmg: () => this.rollDamage('Damage: ' + w.name, damageDice, dmgAbMod),
         remove: () => this.removeWeapon(i),
         runeSummary, editRunes: () => this.openRuneModal(i),
+        hasActivations: activationRows.length > 0, activations: activationRows, activationsExpanded,
+        toggleActivations: () => this.toggleWeaponActivations(char.id, i),
+        activationsCaretClass: activationsExpanded ? 'ph-lightning-slash' : 'ph-lightning',
+        activationsGridStyle: 'display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:' + (activationsExpanded ? '1fr' : '0fr'),
       };
     });
     const weaponLibOptions = data.WEAPONS.filter(w => bf[w.book])
