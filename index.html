@@ -1476,7 +1476,7 @@
                 <tbody>
                   <sc-for list="{{ inventoryRows }}" as="it" hint-placeholder-count="3">
                     <tr>
-                      <td><sc-if value="{{ it.wornGrant }}" hint-placeholder-val="{{ false }}"><span class="tag tag-accent" style="font-size:10px;margin-right:4px" title="{{ it.wornTitle }}">{{ it.grantTag }}</span></sc-if><span style="position:relative;cursor:default" onMouseEnter="{{ it.onNameEnter }}" onMouseLeave="{{ it.onNameLeave }}">{{ it.name }}
+                      <td><span style="position:relative;cursor:default" onMouseEnter="{{ it.onNameEnter }}" onMouseLeave="{{ it.onNameLeave }}">{{ it.name }}
                         <sc-if value="{{ it.nameHovered }}" hint-placeholder-val="{{ false }}">
                           <sc-if value="{{ it.hasDesc }}" hint-placeholder-val="{{ false }}">
                             <div style="position:absolute;top:110%;left:0;z-index:10;background:var(--color-neutral-900);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:var(--space-3);width:280px;box-shadow:var(--shadow-lg);font-size:12px;color:var(--color-neutral-200);white-space:normal;text-align:left">{{ it.desc }}</div>
@@ -1491,12 +1491,14 @@
                       <td>{{ it.bulk }}</td>
                       <td>{{ it.price }}</td>
                       <td><input class="input" type="text" value="{{ it.notes }}" onChange="{{ it.setNotes }}"></td>
-                      <td style="white-space:nowrap">
-                        <sc-if value="{{ it.hasGrants }}" hint-placeholder-val="{{ false }}">
-                          <button class="btn btn-icon" title="{{ it.wornTitle }}" onClick="{{ it.toggleWorn }}"><i class="ph ph-hand-heart" style="{{ it.wornIconStyle }}"></i></button>
-                        </sc-if>
+                      <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:4px">
+                        <span style="width:28px;display:inline-flex;justify-content:center">
+                          <sc-if value="{{ it.hasGrants }}" hint-placeholder-val="{{ false }}">
+                            <button class="btn btn-icon" title="{{ it.wornTitle }}" onClick="{{ it.toggleWorn }}"><i class="ph ph-hand-heart" style="{{ it.wornIconStyle }}"></i></button>
+                          </sc-if>
+                        </span>
                         <button class="btn btn-icon" title="Remove" onClick="{{ it.remove }}"><i class="ph ph-trash"></i></button>
-                      </td>
+                      </div></td>
                     </tr>
                   </sc-for>
                 </tbody>
@@ -4373,13 +4375,8 @@ class Component extends DCLogic {
       // items added before descriptions existed in the data still get a tooltip.
       const gearDef = data.GEAR.find(x => x.name === it.name) || {};
       const itemDesc = gearDef.desc || '';
-      const grantDefs = gearDef.grants || [];
-      const grantSummary = grantDefs
+      const grantSummary = (gearDef.grants || [])
         .map(gr => `${gr.value >= 0 ? '+' : ''}${gr.value} ${gr.type} bonus to ${(gr.skills || []).map(k => SKILL_LABEL[k] || k).join(', ')}`)
-        .join(' · ');
-      // Terse form for the at-a-glance name tag shown while worn, e.g. "+1 Medicine".
-      const grantTag = grantDefs
-        .map(gr => `${gr.value >= 0 ? '+' : ''}${gr.value} ${(gr.skills || []).map(k => SKILL_LABEL[k] || k).join('/')}`)
         .join(' · ');
       const worn = !!it.worn;
       return {
@@ -4388,8 +4385,8 @@ class Component extends DCLogic {
         onNameEnter: () => this.setHoverInventory(i), onNameLeave: () => this.setHoverInventory(null),
         incQty: () => this.updateInventory(i, 'qty', (it.qty || 0) + 1), decQty: () => this.updateInventory(i, 'qty', Math.max(0, (it.qty || 0) - 1)),
         setNotes: (e) => this.updateInventory(i, 'notes', e.target.value), remove: () => this.removeInventory(i),
-        worn, toggleWorn: () => this.updateInventory(i, 'worn', !worn),
-        hasGrants: !!grantSummary, grantTag, wornGrant: worn && !!grantSummary,
+        toggleWorn: () => this.updateInventory(i, 'worn', !worn),
+        hasGrants: !!grantSummary,
         wornIconStyle: `font-size:16px;color:${worn ? 'var(--color-accent-300)' : 'var(--color-neutral-500)'}`,
         wornTitle: grantSummary ? (worn ? `Worn — applying ${grantSummary}` : `Not worn — ${grantSummary} inactive`) : (worn ? 'Worn' : 'Not worn'),
       };
