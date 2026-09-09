@@ -1472,7 +1472,7 @@
             <div class="card" style="padding:var(--space-4)">
               <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);border-bottom:1px solid var(--color-neutral-800);padding-bottom:var(--space-2);margin-bottom:var(--space-3);padding-top:8px">Backpack</div>
               <table class="table">
-                <thead><tr><th>Item</th><th>Qty</th><th>Bulk</th><th>Price</th><th>Notes</th><th></th></tr></thead>
+                <thead><tr><th>Item</th><th title="Worn or held — some worn gear grants bonuses">Worn</th><th>Qty</th><th>Bulk</th><th>Price</th><th>Notes</th><th></th></tr></thead>
                 <tbody>
                   <sc-for list="{{ inventoryRows }}" as="it" hint-placeholder-count="3">
                     <tr>
@@ -1483,6 +1483,12 @@
                           </sc-if>
                         </sc-if>
                       </span></td>
+                      <td style="white-space:nowrap"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer" title="{{ it.wornTitle }}">
+                        <input type="checkbox" checked="{{ it.worn }}" onChange="{{ it.toggleWorn }}" style="width:15px;height:15px;accent-color:var(--color-accent);cursor:pointer">
+                        <sc-if value="{{ it.hasGrants }}" hint-placeholder-val="{{ false }}">
+                          <span class="tag tag-accent" style="font-size:10px">{{ it.grantSummary }}</span>
+                        </sc-if>
+                      </label></td>
                       <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:6px">
                         <button class="btn btn-icon" style="width:20px;height:20px" onClick="{{ it.decQty }}">-</button>
                         <span style="min-width:16px;text-align:center">{{ it.qty }}</span>
@@ -3673,9 +3679,9 @@ class Component extends DCLogic {
       const b = RANK_BADGE[rank] || RANK_BADGE[0];
       return `display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font:600 11px var(--font-heading);background:${b.bg};color:${b.color};box-shadow:${b.shadow}`;
     };
-    // Same breakdown format as the Weapons Attack modifier tooltip (ability mod + proficiency = total).
-    const modBreakdown = (abMod, abLabel, profBonus, total) =>
-      `${data.fmtMod(abMod)} (${abLabel}) ${profBonus >= 0 ? '+' : '-'} ${Math.abs(profBonus)} (Proficiency) = ${data.fmtMod(total)}`;
+    // Same breakdown format as the Weapons Attack modifier tooltip (ability mod + proficiency [+ item] = total).
+    const modBreakdown = (abMod, abLabel, profBonus, total, itemBonus = 0) =>
+      `${data.fmtMod(abMod)} (${abLabel}) ${profBonus >= 0 ? '+' : '-'} ${Math.abs(profBonus)} (Proficiency)${itemBonus ? ` ${itemBonus >= 0 ? '+' : '-'} ${Math.abs(itemBonus)} (Item)` : ''} = ${data.fmtMod(total)}`;
     const RANK_WORD = { 'Untrained': 0, 'Trained': 1, 'Expert': 2, 'Master': 3, 'Legendary': 4 };
     const findRank = (lines, keyword) => {
       const line = lines.find(l => l.toLowerCase().includes(keyword));
@@ -3816,15 +3822,25 @@ class Component extends DCLogic {
     const skillRankOptions = rankOptions.filter(ro => ro.value <= 2 || (ro.value === 3 && level >= 7) || (ro.value === 4 && level >= 15));
     const editingSkills = s.editingSkills;
     const editingSaves = s.editingSaves;
+    // Worn gear can grant bonuses (e.g. Expanded Healer's Toolkit: +1 item to Medicine). Item bonuses
+    // don't stack, so a skill takes the highest active grant. Only inventory entries flagged worn and
+    // backed by a GEAR def that declares `grants` contribute.
+    const activeGrants = char.inventory
+      .filter(it => it.worn)
+      .flatMap(it => ((data.GEAR.find(g => g.name === it.name) || {}).grants) || []);
+    const skillItemBonus = (skillKey) => activeGrants
+      .filter(gr => gr.type === 'item' && (gr.skills || []).includes(skillKey))
+      .reduce((best, gr) => Math.max(best, gr.value || 0), 0);
     const skillRows = data.SKILLS.map(sk => {
       const rank = char.skillRanks[sk.key] || 0;
       const abMod = mods[sk.ability];
       const profBonus = data.calcProfBonus(rank, level);
-      const mod = abMod + profBonus;
+      const itemBonus = skillItemBonus(sk.key);
+      const mod = abMod + profBonus + itemBonus;
       const isOpen = !!(s.openSkillKeys[char.id] || {})[sk.key];
       const withIcon = (a) => ({ ...a, icon: ACTION_ICONS[a.cost] || '', hasIcon: !!ACTION_ICONS[a.cost] });
       return { key: sk.key, name: sk.name, ability: sk.ability.toUpperCase(), rank, rankName: data.RANK_NAMES[rank], badgeLabel: data.RANK_NAMES[rank][0], badgeStyle: badgeStyleFor(rank), mod: data.fmtMod(mod), roll: () => this.rollCheck(sk.name, mod),
-        modBreakdown: modBreakdown(abMod, sk.ability.toUpperCase(), profBonus, mod),
+        modBreakdown: modBreakdown(abMod, sk.ability.toUpperCase(), profBonus, mod, itemBonus),
         hovered: s.hoveredSkillKey === sk.key, onEnter: () => this.setHoverSkill(sk.key), onLeave: () => this.setHoverSkill(null),
         setRank: (e) => this.setSkillRank(sk.key, e.target.value),
         desc: sk.desc, untrained: sk.untrained.map(withIcon), trained: sk.trained.map(withIcon), isOpen, toggle: () => this.toggleSkillOpen(char.id, sk.key), caretClass: isOpen ? 'ph-caret-down' : 'ph-caret-right',
@@ -4352,17 +4368,25 @@ class Component extends DCLogic {
       value: (char.currency && char.currency[cd.key]) || 0,
       setValue: (e) => this.setCurrency(cd.key, e.target.value),
     }));
+    const SKILL_LABEL = Object.fromEntries(data.SKILLS.map(sk => [sk.key, sk.name]));
     const inventoryRows = char.inventory.map((it, i) => {
       // Looked up by name rather than trusting a desc stored on the inventory entry itself, so
       // items added before descriptions existed in the data still get a tooltip.
       const gearDef = data.GEAR.find(x => x.name === it.name) || {};
       const itemDesc = gearDef.desc || '';
+      const grantSummary = (gearDef.grants || [])
+        .map(gr => `${gr.value >= 0 ? '+' : ''}${gr.value} ${gr.type} bonus to ${(gr.skills || []).map(k => SKILL_LABEL[k] || k).join(', ')}`)
+        .join(' · ');
+      const worn = !!it.worn;
       return {
         name: it.name, qty: it.qty, bulk: it.bulk, price: gearDef.price || '', notes: it.notes,
         desc: itemDesc, hasDesc: !!itemDesc, nameHovered: s.hoveredInventoryKey === i,
         onNameEnter: () => this.setHoverInventory(i), onNameLeave: () => this.setHoverInventory(null),
         incQty: () => this.updateInventory(i, 'qty', (it.qty || 0) + 1), decQty: () => this.updateInventory(i, 'qty', Math.max(0, (it.qty || 0) - 1)),
         setNotes: (e) => this.updateInventory(i, 'notes', e.target.value), remove: () => this.removeInventory(i),
+        worn, toggleWorn: () => this.updateInventory(i, 'worn', !worn),
+        hasGrants: !!grantSummary, grantSummary,
+        wornTitle: grantSummary ? (worn ? `Worn — applying ${grantSummary}` : `Not worn — ${grantSummary} inactive`) : (worn ? 'Worn' : 'Not worn'),
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
 
