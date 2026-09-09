@@ -1249,6 +1249,9 @@ export const SPECIFIC_WEAPONS = [
   { name: 'Sparkblade', book: 'player-core', baseWeapon: 'Shortsword', level: 3, potencyRune: '+1', strikingRune: 'none', traitsAdd: 'Cold Iron, Evocation, Magical', desc: 'Faint, delicate etchings of lightning trace across the blade of this +1 cold iron shortsword. Once per day, you can spend 1 action to cast \'Electric Arc\' at a foe within 30 feet of you and shoot an arc of lightning from the blade. This lightning can leap from your chosen foe to another creature you choose within 30 feet, dealing 2d4+4 electricity damage to each creature (DC 19 basic Reflex save).', activations: [
     { name: 'Sparkblade Arc', cost: '1', frequency: 'once per day', uses: 1, damage: '2d4+4', save: 'DC 19 basic Reflex', range: '30 feet', desc: "Shoot an arc of lightning from the blade at a foe within 30 feet (as Electric Arc). The lightning can leap to a second creature within 30 feet, dealing 2d4+4 electricity damage to each." },
   ] },
+  { name: 'Wand Of Heal', book: 'gm-core', baseWeapon: 'Light Mace', level: 3, traitsAdd: 'Magical, Wand', desc: 'The golden caps on the ends of this white wooden wand are adorned with ruby cabochons. It can be swung as an improvised light mace, but its real use is the healing magic bound within.', activations: [
+    { name: 'Cast Heal', cost: '1-3', frequency: 'once per day', uses: 1, damage: '1d8', range: 'touch, 30 ft, or 30-ft emanation', desc: 'Cast a 1st-rank heal spell. 1 action: touch. 2 actions: 30-foot range and the healing increases by 8 (1d8+8). 3 actions: 30-foot emanation affecting all living and undead creatures.' },
+  ] },
 ];
 
 // Resolves a weapon name to a full weapon-like stat block, checking the mundane WEAPONS catalog

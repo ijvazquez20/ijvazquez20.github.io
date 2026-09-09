@@ -3788,6 +3788,31 @@ class Component extends DCLogic {
     }));
 
     const ACTION_ICONS = { '1': 'assets/action-single.png', '2': 'assets/action-double.png', '3': 'assets/action-triple.png', 'F': 'assets/action-free.png', 'R': 'assets/action-reaction.png' };
+    // Shared builder for the collapsible "activated ability" rows used by specific weapons (Sparkblade)
+    // and by activatable gear (Wand of Heal). `ownerName` namespaces the per-day usage key stored in
+    // char.itemActivationsUsed, which Full Rest clears.
+    const buildActivationRows = (ownerName, defs) => (defs || []).map(act => {
+      const tracked = /day/i.test(act.frequency || '');
+      const maxUses = act.uses || 1;
+      const usedKey = ownerName + '::' + act.name;
+      const usedCount = (char.itemActivationsUsed || {})[usedKey] || 0;
+      const spent = tracked && usedCount >= maxUses;
+      const metaBits = [act.range ? 'Range ' + act.range : '', act.save || ''].filter(Boolean).join(' · ');
+      return {
+        name: act.name, desc: act.desc || '',
+        cost: act.cost || '', icon: ACTION_ICONS[act.cost] || '', hasIcon: !!ACTION_ICONS[act.cost],
+        meta: metaBits, hasMeta: !!metaBits,
+        hasDamage: !!act.damage, damage: act.damage || '',
+        rollDmg: () => this.rollDamage(ownerName + ': ' + act.name, act.damage || '', 0),
+        tracked, spent,
+        useLabel: spent ? 'Used ✓' : 'Use',
+        useBtnClass: spent ? 'btn btn-ghost' : 'btn btn-secondary',
+        usesLabel: (tracked && maxUses > 1) ? (usedCount + ' / ' + maxUses + ' today') : (tracked ? (act.frequency || 'once per day') : ''),
+        hasUsesLabel: tracked,
+        toggleUse: () => this.useItemActivation(usedKey, maxUses),
+        rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (spent ? ';opacity:0.55' : ''),
+      };
+    });
     const findFeatSource = (name) => {
       if (ancestry) { const f = ancestry.feats.find(f => f.name === name); if (f) return f; }
       if (cls) { const f = cls.feats.find(f => f.name === name); if (f) return f; }
@@ -3903,30 +3928,8 @@ class Component extends DCLogic {
       // Activated item abilities exposed by specific magic weapons (e.g. the Sparkblade). Rendered as
       // a collapsible sub-row under the weapon; each ability with a daily frequency tracks its own
       // "used today" count in char.itemActivationsUsed and is refreshed by Full Rest.
-      const activationDefs = ((wDef || {}).activations) || [];
+      const activationRows = buildActivationRows(w.name, (wDef || {}).activations);
       const activationsExpanded = !!(s.expandedWeaponActivations[char.id] || {})[i];
-      const activationRows = activationDefs.map(act => {
-        const tracked = /day/i.test(act.frequency || '');
-        const maxUses = act.uses || 1;
-        const usedKey = w.name + '::' + act.name;
-        const usedCount = (char.itemActivationsUsed || {})[usedKey] || 0;
-        const spent = tracked && usedCount >= maxUses;
-        const metaBits = [act.range ? 'Range ' + act.range : '', act.save || ''].filter(Boolean).join(' · ');
-        return {
-          name: act.name, desc: act.desc || '',
-          cost: act.cost || '', icon: ACTION_ICONS[act.cost] || '', hasIcon: !!ACTION_ICONS[act.cost],
-          meta: metaBits, hasMeta: !!metaBits,
-          hasDamage: !!act.damage, damage: act.damage || '',
-          rollDmg: () => this.rollDamage(w.name + ': ' + act.name, act.damage || '', 0),
-          tracked, spent,
-          useLabel: spent ? 'Used ✓' : 'Use',
-          useBtnClass: spent ? 'btn btn-ghost' : 'btn btn-secondary',
-          usesLabel: (tracked && maxUses > 1) ? (usedCount + ' / ' + maxUses + ' today') : (tracked ? (act.frequency || 'once per day') : ''),
-          hasUsesLabel: tracked,
-          toggleUse: () => this.useItemActivation(usedKey, maxUses),
-          rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (spent ? ';opacity:0.55' : ''),
-        };
-      });
       return {
         name: w.name, damage: w.damage, damageDice, damageTypeName, traits: w.traits, traitList, atkMod: data.fmtMod(atk), atkBreakdown, dmgBreakdown,
         hovered: s.hoveredWeaponIndex === i, onEnter: () => this.setHoverWeapon(i), onLeave: () => this.setHoverWeapon(null),
