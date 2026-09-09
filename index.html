@@ -1409,13 +1409,15 @@
                           </span>
                         </sc-for>
                       </div></td>
-                      <td style="white-space:nowrap">
-                        <sc-if value="{{ w.hasActivations }}" hint-placeholder-val="{{ false }}">
-                          <button class="btn btn-icon" title="Activated abilities" onClick="{{ w.toggleActivations }}"><i class="ph {{ w.activationsCaretClass }}" style="font-size:16px;color:var(--color-accent-300)"></i></button>
-                        </sc-if>
+                      <td style="white-space:nowrap"><div style="display:flex;align-items:center;gap:4px">
+                        <span style="width:28px;display:inline-flex;justify-content:center">
+                          <sc-if value="{{ w.hasActivations }}" hint-placeholder-val="{{ false }}">
+                            <button class="btn btn-icon" title="Activated abilities" onClick="{{ w.toggleActivations }}"><i class="ph {{ w.activationsCaretClass }}" style="font-size:16px;color:var(--color-accent-300)"></i></button>
+                          </sc-if>
+                        </span>
                         <button class="btn btn-icon" title="Runes: {{ w.runeSummary }}" onClick="{{ w.editRunes }}"><i class="ph ph-gear-six" style="font-size:16px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
                         <button class="btn btn-icon" title="Remove" onClick="{{ w.remove }}"><i class="ph ph-trash"></i></button>
-                      </td>
+                      </div></td>
                     </tr>
                     <sc-if value="{{ w.hasActivations }}" hint-placeholder-val="{{ false }}">
                       <tr>
