@@ -2325,15 +2325,41 @@ function maxSpellRankForLevel(level) {
   return Math.min(10, Math.ceil((level || 1) / 2));
 }
 
-// Most damage spells follow the standard "Heightened (+1): damage increases by one die" pattern
-// (true for essentially every damage cantrip and for Heal/Harm), so a heightened rank can be
-// approximated by adding one die of the same size per rank above the spell's base rank. A handful
-// of spells deviate from this and would need a per-spell override to heighten accurately.
-function heightenDamage(baseDamage, baseRank, effRank) {
-  const m = /^(\d+)d(\d+)$/.exec(baseDamage || '');
-  if (!m) return baseDamage || '';
-  const extraDice = Math.max(0, (effRank == null ? baseRank : effRank) - baseRank);
-  return `${Number(m[1]) + extraDice}d${m[2]}`;
+// Heightening damage can't be derived from the base dice: the interval varies (Electric Arc scales
+// every rank, Caustic Blast every two) and so does the amount (a cantrip typically gains one die,
+// while a ranked or focus spell usually gains its whole base dice — Fire Ray is 2d6 and gains 2d6
+// per rank, not 1d6). So each spell carries its own `heightenStep` (ranks per increase) and
+// `heightenDice` (what each increase adds) in data.SPELLS. Spells without that data are left at
+// their printed damage rather than scaled by a guess.
+//
+// Both the base damage and the increment may be multi-term (e.g. Thunderstrike's "1d12+1d4"), so
+// terms are summed per die size and a trailing flat bonus is carried through unchanged.
+function parseDiceTerms(expr) {
+  const terms = new Map();
+  let flat = 0;
+  String(expr || '').split('+').map(p => p.trim()).filter(Boolean).forEach(part => {
+    const m = /^(\d+)d(\d+)$/.exec(part);
+    if (m) terms.set(Number(m[2]), (terms.get(Number(m[2])) || 0) + Number(m[1]));
+    else if (!Number.isNaN(Number(part))) flat += Number(part);
+  });
+  return { terms, flat };
+}
+function formatDiceTerms({ terms, flat }) {
+  const parts = [...terms.entries()].sort((a, b) => b[0] - a[0]).map(([size, n]) => `${n}d${size}`);
+  if (flat) parts.push(String(flat));
+  return parts.join('+');
+}
+function heightenDamage(baseDamage, baseRank, effRank, def) {
+  const step = (def && def.heightenStep) || 0;
+  const incr = (def && def.heightenDice) || '';
+  if (!baseDamage || !step || !incr) return baseDamage || '';
+  const steps = Math.floor(Math.max(0, (effRank == null ? baseRank : effRank) - baseRank) / step);
+  if (steps <= 0) return baseDamage;
+  const base = parseDiceTerms(baseDamage);
+  const add = parseDiceTerms(incr);
+  add.terms.forEach((n, size) => base.terms.set(size, (base.terms.get(size) || 0) + n * steps));
+  base.flat += add.flat * steps;
+  return formatDiceTerms(base);
 }
 
 // Standard PF2e spell slots per day for a full spellcasting class: a rank grants 2 slots the level
@@ -4210,11 +4236,11 @@ class Component extends DCLogic {
       fontPips.push({ on: i >= fontUsed, toggle: () => this.toggleFontPip(i) });
     }
     const isFontEntry = sp => !!(sp.font && char.divineFont && sp.font === char.divineFont);
-    // A cantrip auto-heightens to half the character's level (rounded up); a Divine Font entry
-    // (Heal or Harm) auto-heightens to the caster's highest available spell rank. Both happen to
-    // resolve to the same curve, already computed above as `fontRank`. Any other known spell is
-    // cast at the rank it was prepared/learned at (no auto-heightening).
-    const effectiveRankFor = (sp) => sp.cantrip ? maxSpellRankForLevel(char.level) : isFontEntry(sp) ? fontRank : sp.level;
+    // Cantrips and focus spells both auto-heighten to half the character's level (rounded up), and a
+    // Divine Font entry (Heal or Harm) auto-heightens to the caster's highest available spell rank;
+    // all three resolve to the same curve, already computed above as `fontRank`. Any other known
+    // spell is cast at the rank it was prepared/learned at (no auto-heightening).
+    const effectiveRankFor = (sp) => (sp.cantrip || sp.focus) ? maxSpellRankForLevel(char.level) : isFontEntry(sp) ? fontRank : sp.level;
     // Looked up by name (not spread from the stored spellsKnown entry) so it stays current even for
     // spells added to a sheet before Range/Target/Area/action existed in the data. Tradition is
     // folded into the same meta line, after Range/Target/Area, rather than shown next to the name.
@@ -4246,7 +4272,7 @@ class Component extends DCLogic {
         iconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',
         iconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
         hasRangeIcon: !!rangeMatch,
-        heightenedDamage: heightenDamage(def.damage, baseRank, effRank),
+        heightenedDamage: heightenDamage(def.damage, baseRank, effRank, def),
         desc: def.desc,
       };
     };
