@@ -1899,7 +1899,7 @@
                   <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ spellAddDetail.bookName }}</div>
                 </sc-if>
               </div>
-              <button class="btn btn-primary" style="margin-top:var(--space-3)" disabled="{{ spellAddDetail.known }}" onClick="{{ addSelectedSpell }}"><i class="ph ph-plus"></i>&nbsp;{{ spellAddDetail.addLabel }}</button>
+              <button class="{{ spellAddDetail.addBtnClass }}" style="{{ spellAddDetail.addBtnStyle }}" onClick="{{ toggleSelectedSpell }}"><i class="ph {{ spellAddDetail.addIconClass }}"></i>&nbsp;{{ spellAddDetail.addLabel }}</button>
             </sc-if>
             <sc-if value="{{ spellAddDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
               <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a spell to see its details.</div>
@@ -2779,18 +2779,26 @@ class Component extends DCLogic {
   setSpellAddTab = (key) => this.setState({ spellAddTab: key, spellAddSelected: null });
   selectSpellToAdd = (name) => this.setState({ spellAddSelected: name });
   setSpellAddSearchField = (e) => this.setState({ spellAddSearch: e.target.value });
-  // Adds the spell shown in the detail pane. Focus spells carry no prepared flag (they're cast from
-  // the focus pool), matching how the two old dropdowns each built their entry. The modal stays open
-  // so several spells can be added in one visit; the row flips to "In spellbook" as confirmation.
-  addSelectedSpell = () => {
+  // Adds or removes the spell shown in the detail pane, so the same button both grants and revokes.
+  // Focus spells carry no prepared flag (they're cast from the focus pool), matching how the two old
+  // dropdowns each built their entry. The modal stays open so several spells can be handled in one
+  // visit; the detail button and the row's check icon flip to reflect the new state.
+  toggleSelectedSpell = () => {
     const name = this.state.spellAddSelected; if (!name) return;
     const sp = this.state.data.SPELLS.find(x => x.name === name); if (!sp) return;
     this.updateActiveChar(c => {
-      // Ignore the cleric's Divine Font row when checking for duplicates: it's a Heal/Harm entry in
-      // spellsKnown that doesn't represent a spellbook entry (see isFontEntry in renderVals).
-      const alreadyKnown = c.spellsKnown.some(k => k.name === sp.name && !(k.font && c.divineFont && k.font === c.divineFont));
-      if (alreadyKnown) return c;
-      return { ...c, spellsKnown: [...c.spellsKnown, sp.focus ? { ...sp, cast: false } : { ...sp, prepared: false, cast: false }] };
+      // The cleric's Divine Font row is a Heal/Harm entry in spellsKnown that isn't a spellbook
+      // entry (see isFontEntry in renderVals), so it never counts as known and is never removed.
+      const isFont = (k) => !!(k.font && c.divineFont && k.font === c.divineFont);
+      if (!c.spellsKnown.some(k => k.name === sp.name && !isFont(k))) {
+        return { ...c, spellsKnown: [...c.spellsKnown, sp.focus ? { ...sp, cast: false } : { ...sp, prepared: false, cast: false }] };
+      }
+      // Drop only the first matching entry, leaving any duplicate from older saves intact.
+      let dropped = false;
+      return { ...c, spellsKnown: c.spellsKnown.filter(k => {
+        if (dropped || k.name !== sp.name || isFont(k)) return true;
+        dropped = true; return false;
+      }) };
     });
   };
   openFormulaAddModal = () => this.setState({ showFormulaAddModal: true });
@@ -4380,7 +4388,7 @@ class Component extends DCLogic {
           actionIconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
           hasRangeActionIcon: !!rangeMatch,
           select: () => this.selectSpellToAdd(sp.name),
-          rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);background:${selected ? 'var(--color-neutral-700)' : 'transparent'}${known ? ';opacity:0.45' : ''}`,
+          rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);background:${selected ? 'var(--color-neutral-700)' : 'transparent'}`,
         };
       });
     const spellAddDef = s.spellAddSelected ? data.SPELLS.find(sp => sp.name === s.spellAddSelected) : null;
@@ -4409,7 +4417,10 @@ class Component extends DCLogic {
       actionIconHigh: spellAddDetailRangeMatch ? (ACTION_ICONS[spellAddDetailRangeMatch[2]] || '') : '',
       hasRangeActionIcon: !!spellAddDetailRangeMatch,
       known: spellAddKnown,
-      addLabel: spellAddKnown ? 'In Spellbook' : 'Add Spell',
+      addLabel: spellAddKnown ? 'Remove From Spellbook' : 'Add Spell',
+      addIconClass: spellAddKnown ? 'ph-trash' : 'ph-plus',
+      addBtnClass: spellAddKnown ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (spellAddKnown ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
     };
     const slotRows = [];
     for (let r = 1; r <= maxRank; r++) {
@@ -4701,7 +4712,7 @@ class Component extends DCLogic {
       showSpellAddModal: s.showSpellAddModal, openSpellAddModal: this.openSpellAddModal, closeSpellAddModal: this.closeSpellAddModal,
       spellAddTabs, spellAddRows, spellAddDetail, hasNoSpellAddRows: spellAddRows.length === 0,
       spellAddSearch: s.spellAddSearch || '', setSpellAddSearch: this.setSpellAddSearchField,
-      addSelectedSpell: this.addSelectedSpell,
+      toggleSelectedSpell: this.toggleSelectedSpell,
       isAlchemist, vialsMax, vialsUsed, vialsRemaining: Math.max(0, vialsMax - vialsUsed), vialPips, advancedAlchemyCapacity,
       formulaBookGroups, preparedAlchemyGroups, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
       hasNoPreparedAlchemy: preparedAlchemyRowsFull.length === 0,
