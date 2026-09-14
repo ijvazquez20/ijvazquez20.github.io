@@ -4313,15 +4313,19 @@ class Component extends DCLogic {
       remove: () => this.removeSpell(i),
       };
     });
+    // A focus cantrip — a witch hex, a bard composition — carries both the cantrip and focus flags.
+    // It's cast with focus points, so it belongs under Focus Spells; without this the two groups
+    // overlap and every such spell gets listed twice.
+    const isPlainCantrip = (r) => r.cantrip && !r.focus;
     const SPELL_LEVEL_DEFS = [];
-    if (spellbookRowsFull.some(r => r.cantrip)) SPELL_LEVEL_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
+    if (spellbookRowsFull.some(isPlainCantrip)) SPELL_LEVEL_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
     if (spellbookRowsFull.some(r => r.focus)) SPELL_LEVEL_DEFS.push({ key: 'focus', label: 'Focus Spells' });
     if (spellbookRowsFull.some(r => r.isFontEntry)) SPELL_LEVEL_DEFS.push({ key: 'font', label: `Divine Font – Rank ${fontRank}` });
     Array.from(new Set(spellbookRowsFull.filter(r => !r.cantrip && !r.focus && !r.isFontEntry).map(r => r.level))).sort((a, b) => a - b)
       .forEach(lvl => SPELL_LEVEL_DEFS.push({ key: 'lvl' + lvl, label: 'Level ' + lvl + ' Spells', level: lvl }));
     const openSpellLevelsForChar = s.openSpellLevels[char.id] || {};
     const spellbookGroups = SPELL_LEVEL_DEFS.map(gd => {
-      const rows = spellbookRowsFull.filter(r => gd.key === 'cantrips' ? r.cantrip : gd.key === 'focus' ? r.focus : gd.key === 'font' ? r.isFontEntry : (!r.cantrip && !r.focus && !r.isFontEntry && r.level === gd.level));
+      const rows = spellbookRowsFull.filter(r => gd.key === 'cantrips' ? isPlainCantrip(r) : gd.key === 'focus' ? r.focus : gd.key === 'font' ? r.isFontEntry : (!r.cantrip && !r.focus && !r.isFontEntry && r.level === gd.level));
       rows.sort((a, b) => a.name.localeCompare(b.name));
       const isOpen = !!openSpellLevelsForChar[gd.key];
       return {
@@ -4349,7 +4353,9 @@ class Component extends DCLogic {
         isHex: sp.tradition === 'Witch' && !!sp.focus,
         hasDamage: !!spDamage, damage: spDamage || '',
         rollDmg: () => this.rollDamage('Damage: ' + sp.name, spDamage, 0),
-        showCastToggle: !sp.cantrip,
+        // Plain cantrips are unlimited, so they have nothing to spend. A focus cantrip still costs a
+        // Focus Point, so it keeps its toggle (routed to toggleFocusCast below).
+        showCastToggle: !isPlainCantrip(sp),
         cast: !!sp.cast,
         castBtnClass: sp.cast ? 'btn btn-ghost' : 'btn btn-secondary',
         castLabel: sp.cast ? 'Cast ✓' : 'Cast',
@@ -4358,13 +4364,13 @@ class Component extends DCLogic {
         };
       });
     const AVAILABLE_GROUP_DEFS = [];
-    if (availableSpellRowsFull.some(r => r.cantrip)) AVAILABLE_GROUP_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
+    if (availableSpellRowsFull.some(isPlainCantrip)) AVAILABLE_GROUP_DEFS.push({ key: 'cantrips', label: 'Cantrips' });
     if (availableSpellRowsFull.some(r => r.focus)) AVAILABLE_GROUP_DEFS.push({ key: 'focus', label: 'Focus Spells' });
     if (availableSpellRowsFull.some(r => r.isFontEntry)) AVAILABLE_GROUP_DEFS.push({ key: 'font', label: `${char.divineFont === 'heal' ? 'Healing Font' : 'Harmful Font'} – Rank ${fontRank}` });
     Array.from(new Set(availableSpellRowsFull.filter(r => !r.cantrip && !r.focus && !r.isFontEntry).map(r => r.level))).sort((a, b) => a - b)
       .forEach(lvl => AVAILABLE_GROUP_DEFS.push({ key: 'lvl' + lvl, label: 'Level ' + lvl + ' Spells', level: lvl }));
     const availableSpellGroups = AVAILABLE_GROUP_DEFS.map(gd => {
-      const rows = availableSpellRowsFull.filter(r => gd.key === 'cantrips' ? r.cantrip : gd.key === 'focus' ? r.focus : gd.key === 'font' ? r.isFontEntry : (!r.cantrip && !r.focus && !r.isFontEntry && r.level === gd.level));
+      const rows = availableSpellRowsFull.filter(r => gd.key === 'cantrips' ? isPlainCantrip(r) : gd.key === 'focus' ? r.focus : gd.key === 'font' ? r.isFontEntry : (!r.cantrip && !r.focus && !r.isFontEntry && r.level === gd.level));
       rows.sort((a, b) => a.name.localeCompare(b.name));
       return {
         key: gd.key, label: gd.label, isFocusGroup: gd.key === 'focus', isFontGroup: gd.key === 'font', isNotFocusGroup: gd.key !== 'focus' && gd.key !== 'font',
@@ -4522,8 +4528,10 @@ class Component extends DCLogic {
     const fontRemaining = Math.max(0, fontMax - fontUsed);
     const cantripsUnlimited = isSpontaneousCaster;
     const cantripsPrepared = !isSpontaneousCaster;
-    const cantripKnownCount = char.spellsKnown.filter(sp => sp.cantrip).length;
-    const preparedCantripCount = char.spellsKnown.filter(sp => sp.cantrip && sp.prepared).length;
+    // Focus cantrips don't count against the prepared-cantrip allotment — they're cast from the
+    // focus pool, so they're tallied by the focus pips instead.
+    const cantripKnownCount = char.spellsKnown.filter(isPlainCantrip).length;
+    const preparedCantripCount = char.spellsKnown.filter(sp => isPlainCantrip(sp) && sp.prepared).length;
 
     // Alchemist's Alchemy tab stands in for the Spells tab (see tabDefs below). Versatile Vials are
     // a pip-tracked pool like Focus Points; Advanced Alchemy has no fixed slot table — like a prepared
