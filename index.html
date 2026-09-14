@@ -2982,7 +2982,8 @@ class Component extends DCLogic {
     const ancestry = data.ANCESTRIES.find(a => a.key === c.ancestryKey);
     const cls = data.CLASSES.find(x => x.key === c.classKey);
     const hasToughness = (c.feats || []).some(f => f.name === 'Toughness');
-    return data.calcHpMax(ancestry ? ancestry.hp : 0, cls ? cls.hp : 0, data.calcMod(c.abilities.con), c.level, hasToughness);
+    const base = data.calcHpMax(ancestry ? ancestry.hp : 0, cls ? cls.hp : 0, data.calcMod(c.abilities.con), c.level, hasToughness);
+    return base + data.wornHpBonus(c.inventory, data.GEAR);
   };
   setLevel = (lvl) => this.updateActiveChar(c => ({ ...c, level: Math.max(1, Math.min(20, Number(lvl) || 1)) }));
   setXP = (xp) => this.updateActiveChar(c => ({ ...c, xp: Math.max(0, Number(xp) || 0) }));
@@ -3364,7 +3365,7 @@ class Component extends DCLogic {
       const cls = data.CLASSES.find(x => x.key === c.classKey);
       const anc = data.ANCESTRIES.find(x => x.key === c.ancestryKey);
       const hasToughness = (c.feats || []).some(f => f.name === 'Toughness');
-      const hpMax = data.calcHpMax(anc ? anc.hp : 0, cls ? cls.hp : 0, data.calcMod(c.abilities.con), c.level, hasToughness);
+      const hpMax = data.calcHpMax(anc ? anc.hp : 0, cls ? cls.hp : 0, data.calcMod(c.abilities.con), c.level, hasToughness) + data.wornHpBonus(c.inventory, data.GEAR);
       const pct = Math.max(0, Math.min(100, Math.round((c.hpCurrent / (hpMax || 1)) * 100)));
       return {
         id: c.id, name: c.name, level: c.level, className: cls ? cls.name : '?', ancestryName: anc ? anc.name : '?',
@@ -3737,7 +3738,7 @@ class Component extends DCLogic {
     const mods = {}; data.ABILITIES.forEach(a => mods[a.key] = data.calcMod(char.abilities[a.key]));
     const level = char.level;
     const hasToughness = (char.feats || []).some(f => f.name === 'Toughness');
-    const hpMax = data.calcHpMax(ancestry ? ancestry.hp : 0, cls ? cls.hp : 0, mods.con, level, hasToughness);
+    const hpMax = data.calcHpMax(ancestry ? ancestry.hp : 0, cls ? cls.hp : 0, mods.con, level, hasToughness) + data.wornHpBonus(char.inventory, data.GEAR);
     // Non-blocking leveling-up reminders (Player Core p.29/92). These are informational only —
     // ability scores, skill ranks, and feats all stay freely editable elsewhere on the sheet,
     // so nothing here is tracked as "done"; it just restates what this level entitles you to.
@@ -4392,7 +4393,9 @@ class Component extends DCLogic {
       const gearDef = data.GEAR.find(x => x.name === it.name) || {};
       const itemDesc = gearDef.desc || '';
       const grantSummary = (gearDef.grants || [])
-        .map(gr => `${gr.value >= 0 ? '+' : ''}${gr.value} ${gr.type} bonus to ${(gr.skills || []).map(k => SKILL_LABEL[k] || k).join(', ')}`)
+        .map(gr => typeof gr.hpMax === 'number'
+          ? `${gr.hpMax >= 0 ? '+' : ''}${gr.hpMax} maximum HP`
+          : `${gr.value >= 0 ? '+' : ''}${gr.value} ${gr.type} bonus to ${(gr.skills || []).map(k => SKILL_LABEL[k] || k).join(', ')}`)
         .join(' · ');
       const worn = !!it.worn;
       return {

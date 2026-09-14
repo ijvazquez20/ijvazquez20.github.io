@@ -132,6 +132,16 @@ export function calcHpMax(ancestryHp, classHp, conMod, level, hasToughness) {
   return (ancestryHp || 0) + ((classHp || 0) + (conMod || 0)) * lvl + (hasToughness ? lvl : 0);
 }
 
+// Sum of max-HP increases from worn gear (e.g. Belt of Good Health). Unlike an item bonus to a
+// skill, these are untyped increases to the HP pool — like ancestry HP or the Toughness feat — so
+// multiple different sources stack rather than only the highest applying.
+export function wornHpBonus(inventory, GEAR) {
+  return (inventory || [])
+    .filter(it => it.worn)
+    .flatMap(it => ((GEAR.find(g => g.name === it.name) || {}).grants) || [])
+    .reduce((sum, gr) => sum + (typeof gr.hpMax === 'number' ? gr.hpMax : 0), 0);
+}
+
 export const CONDITIONS = [
   { key: 'blinded', name: 'Blinded', desc: 'Cannot see; all normally-sighted terrain is difficult terrain to you. Treat all targets as concealed. Automatically fail sight-based checks.', valued: false },
   { key: 'clumsy', name: 'Clumsy', desc: 'A clumsy penalty applies to Dex-based rolls (checks, DCs, modifiers), including AC and Reflex.', valued: true },
@@ -1399,7 +1409,9 @@ export const GEAR = [
   { name: 'Replacement Cosmetics', bulk: '—', price: '1 sp', desc: 'A small box of cosmetics, false facial hair, and simple wigs used to restock a disguise kit\'s supplies for Impersonating someone.' }, { name: 'Elite Disguise Kit', bulk: 'L', price: '40 gp', desc: 'A superior version of a disguise kit that grants a +1 item bonus to checks it supports; wearing it lets you draw and stow it as part of the action that uses it.' },
   { name: 'Elite Cosmetics', bulk: '—', price: '5 sp', desc: 'A finer refill of disguise-kit cosmetics that grants a +1 item bonus to the checks a disguise kit normally supports.' }, { name: 'Dueling Cape', bulk: 'L', price: '5 sp', desc: 'A cape you can wrap around one arm with an Interact action; holding it in a guard position grants a +1 circumstance bonus to AC and to Deception checks to Feint until your next turn.' },
   { name: 'Professional Fishing Tackle', bulk: '1', price: '20 gp', desc: 'An upgraded fishing tackle set that grants a +1 item bonus to checks made to fish.' }, { name: 'Hourglass', bulk: 'L', price: '3 gp', desc: 'A timekeeping device that measures a fixed interval as sand falls between two chambers.' },
-  { name: 'Expanded Healer’s Toolkit', bulk: '1', price: '50 gp', desc: 'An upgraded healer\'s toolkit that grants a +1 item bonus to Medicine checks it supports.', grants: [{ type: 'item', value: 1, skills: ['medicine'] }] }, { name: 'Bull’s-Eye Lantern', bulk: '1', price: '1 gp', desc: 'An oil lantern that burns for 6 hours per pint and focuses its bright light into a 60-foot cone (with dim light for another 60 feet beyond that).' },
+  { name: 'Expanded Healer’s Toolkit', bulk: '1', price: '50 gp', desc: 'An upgraded healer\'s toolkit that grants a +1 item bonus to Medicine checks it supports.', grants: [{ type: 'item', value: 1, skills: ['medicine'] }] },
+  { name: 'Belt Of Good Health', level: 4, bulk: 'L', price: '85 gp', traits: 'Invested, Magical, Necromancy', desc: 'When you put on this belt, its silver buckle begins to glow, which slowly spreads into the heart-shaped jewel in the center. You increase your maximum Hit Points and current Hit Points by 4.', grants: [{ hpMax: 4 }] },
+  { name: 'Bull’s-Eye Lantern', bulk: '1', price: '1 gp', desc: 'An oil lantern that burns for 6 hours per pint and focuses its bright light into a 60-foot cone (with dim light for another 60 feet beyond that).' },
   { name: 'Poor Lock', bulk: '—', price: '2 sp', desc: 'A shoddy lock; picking it open requires two successful DC 15 Thievery checks to Pick a Lock.' }, { name: 'Average Lock', bulk: '—', price: '15 gp', desc: 'A lock of middling quality; picking it open requires four successful DC 25 Thievery checks to Pick a Lock.' },
   { name: 'Good Lock', bulk: '—', price: '200 gp', desc: 'A high-quality lock; picking it open requires five successful DC 30 Thievery checks to Pick a Lock.' }, { name: 'Superior Lock', bulk: '—', price: '4500 gp', desc: 'A masterwork lock; picking it open requires six successful DC 40 Thievery checks to Pick a Lock.' },
   { name: 'Magnifying Glass', bulk: '—', price: '40 gp', desc: 'A quality lens that grants a +1 item bonus to Perception checks made to notice fine details in documents, fabric, and similar small objects.' }, { name: 'Poor Manacles', bulk: '—', price: '3 sp', desc: 'Low-quality restraints for binding a willing or helpless creature; escaping requires two successful DC 17 Thievery checks to Pick a Lock, and a bound creature\'s Speed and manipulate actions are hampered while restrained.' },
