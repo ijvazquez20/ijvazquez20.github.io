@@ -1868,7 +1868,7 @@
             <sc-if value="{{ spellAddDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
               <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;max-height:56vh">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                  <span style="font:500 18px var(--font-heading)">{{ spellAddDetail.name }}</span>
+                  <span style="font:500 28px var(--font-heading)">{{ spellAddDetail.name }}</span>
                   <sc-if value="{{ spellAddDetail.hasActionIcon }}" hint-placeholder-val="{{ false }}">
                     <img src="{{ spellAddDetail.actionIcon }}" alt="" style="height:16px;width:auto;vertical-align:middle">
                   </sc-if>
@@ -1896,7 +1896,7 @@
                   </div>
                 </sc-if>
                 <sc-if value="{{ spellAddDetail.bookName }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">{{ spellAddDetail.bookName }}</div>
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ spellAddDetail.bookName }}</div>
                 </sc-if>
               </div>
               <button class="btn btn-primary" style="margin-top:var(--space-3)" disabled="{{ spellAddDetail.known }}" onClick="{{ addSelectedSpell }}"><i class="ph ph-plus"></i>&nbsp;{{ spellAddDetail.addLabel }}</button>
