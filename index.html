@@ -1814,35 +1814,88 @@
 
   <sc-if value="{{ showSpellAddModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeSpellAddModal }}">
-      <div class="dialog" onClick="{{ stopClickPropagation }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
         <div class="dialog-title">Add Spells</div>
-        <div class="dialog-body" style="max-height:55vh;overflow-y:auto;padding-right:2px">
-          <sc-for list="{{ spellAddGroups }}" as="rg" hint-placeholder-count="3">
-            <div style="margin-bottom:var(--space-3)">
-              <div class="card-kicker" style="margin-bottom:4px">{{ rg.label }}</div>
-              <div style="display:flex;gap:var(--space-3)">
-                <select class="input" value="{{ rg.pick }}" onChange="{{ rg.setPick }}" style="flex:1">
-                  <option value="">Choose spell to add…</option>
-                  <sc-for list="{{ rg.options }}" as="o" hint-placeholder-count="6">
-                    <option value="{{ o.name }}">{{ o.label }}</option>
-                  </sc-for>
-                </select>
-                <button class="btn btn-secondary" onClick="{{ rg.add }}"><i class="ph ph-plus"></i>&nbsp;Add</button>
-              </div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ spellAddTabs }}" as="tb" hint-placeholder-count="4">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
+              </sc-for>
             </div>
-          </sc-for>
-          <div>
-            <div class="card-kicker" style="margin-bottom:4px">Focus Spells</div>
-            <div style="display:flex;gap:var(--space-3)">
-              <select class="input" value="{{ focusPick }}" onChange="{{ setFocusPick }}" style="flex:1">
-                <option value="">Choose focus spell to add…</option>
-                <sc-for list="{{ focusSpellLibOptions }}" as="fl2" hint-placeholder-count="6">
-                  <option value="{{ fl2.name }}">{{ fl2.label }}</option>
-                </sc-for>
-              </select>
-              <button class="btn btn-secondary" onClick="{{ addFocusSpellFromPick }}"><i class="ph ph-plus"></i>&nbsp;Add</button>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search spells…" value="{{ spellAddSearch }}" onChange="{{ setSpellAddSearch }}">
+            <div style="height:48vh;overflow-y:auto;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);padding:4px">
+              <sc-if value="{{ hasNoSpellAddRows }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No spells match.</div>
+              </sc-if>
+              <sc-for list="{{ spellAddRows }}" as="sr" hint-placeholder-count="10">
+                <button style="{{ sr.rowStyle }}" onClick="{{ sr.select }}">
+                  <span style="flex:1;min-width:0">{{ sr.name }}</span>
+                  <sc-if value="{{ sr.isCurriculum }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-accent" style="font-size:10px;flex:none">Curriculum</span>
+                  </sc-if>
+                  <sc-if value="{{ sr.known }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-neutral" style="font-size:10px;flex:none">In spellbook</span>
+                  </sc-if>
+                  <span style="font-size:11px;color:var(--color-neutral-400);flex:none">{{ sr.tradition }}</span>
+                  <span style="width:42px;display:inline-flex;justify-content:flex-end;align-items:center;gap:3px;flex:none">
+                    <sc-if value="{{ sr.hasActionIcon }}" hint-placeholder-val="{{ true }}">
+                      <img src="{{ sr.actionIcon }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                    </sc-if>
+                    <sc-if value="{{ sr.hasRangeActionIcon }}" hint-placeholder-val="{{ false }}">
+                      <img src="{{ sr.actionIconLow }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                      <span style="font-size:9px;color:var(--color-neutral-500)">to</span>
+                      <img src="{{ sr.actionIconHigh }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                    </sc-if>
+                  </span>
+                </button>
+              </sc-for>
             </div>
           </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ spellAddDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;max-height:56vh">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font:500 18px var(--font-heading)">{{ spellAddDetail.name }}</span>
+                  <sc-if value="{{ spellAddDetail.hasActionIcon }}" hint-placeholder-val="{{ false }}">
+                    <img src="{{ spellAddDetail.actionIcon }}" alt="" style="height:16px;width:auto;vertical-align:middle">
+                  </sc-if>
+                  <sc-if value="{{ spellAddDetail.hasRangeActionIcon }}" hint-placeholder-val="{{ false }}">
+                    <span style="display:inline-flex;align-items:center;gap:3px">
+                      <img src="{{ spellAddDetail.actionIconLow }}" alt="" style="height:16px;width:auto;vertical-align:middle">
+                      <span style="font-size:11px;color:var(--color-neutral-400)">to</span>
+                      <img src="{{ spellAddDetail.actionIconHigh }}" alt="" style="height:16px;width:auto;vertical-align:middle">
+                    </span>
+                  </sc-if>
+                  <sc-if value="{{ spellAddDetail.isCurriculum }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-accent" style="font-size:10px">Curriculum</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ spellAddDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5">{{ spellAddDetail.desc }}</div>
+                <sc-if value="{{ spellAddDetail.hasHeightened }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
+                    <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:2px">Heightened</div>
+                    <div style="font-size:12px;color:var(--color-neutral-300)">{{ spellAddDetail.heightened }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ spellAddDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">{{ spellAddDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="btn btn-primary" style="margin-top:var(--space-3)" disabled="{{ spellAddDetail.known }}" onClick="{{ addSelectedSpell }}"><i class="ph ph-plus"></i>&nbsp;{{ spellAddDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ spellAddDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a spell to see its details.</div>
+            </sc-if>
+          </div>
+
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" onClick="{{ closeSpellAddModal }}">Done</button>
@@ -2343,7 +2396,7 @@ class Component extends DCLogic {
     serverError: false,
     checklistShown: {},
     diceLog: [], diceLogOpen: false, diceTrayOpen: false, dicePool: {}, diceModifier: 0, draft: null, builderStep: 0, confirmDeleteId: null,
-    hoveredConditionKey: null, hoveredProficiencyIndex: null, hoveredSkillKey: null, hoveredLoreIndex: null, hoveredWeaponIndex: null, hoveredWeaponDmgIndex: null, hoveredTraitKey: null, featPick: '', spellPicksByRank: {}, focusPick: '', hpAdjustAmount: '', shieldAdjustAmount: '', bonusFeatPicks: {}, staffSpellPick: '', staffPrepareRank: '',
+    hoveredConditionKey: null, hoveredProficiencyIndex: null, hoveredSkillKey: null, hoveredLoreIndex: null, hoveredWeaponIndex: null, hoveredWeaponDmgIndex: null, hoveredTraitKey: null, featPick: '', hpAdjustAmount: '', shieldAdjustAmount: '', bonusFeatPicks: {}, staffSpellPick: '', staffPrepareRank: '',
     hoveredWeaponNameKey: null, hoveredInventoryKey: null,
     weaponSearchText: '', weaponSearchOpen: false, gearSearchText: '', gearSearchOpen: false,
     // Keyed by character id (each nested map keyed by category/skill/spell-level key) so expanding
@@ -2353,6 +2406,9 @@ class Component extends DCLogic {
     openSpellLevels: {},
     expandedWeaponActivations: {},
     expandedInventoryActivations: {},
+    // Add Spells browser: which rank tab is showing, the spell whose detail is on the right, and
+    // the name filter. All transient — reset each time the modal opens.
+    spellAddTab: 'cantrip', spellAddSelected: null, spellAddSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -2707,8 +2763,26 @@ class Component extends DCLogic {
   openBookFilter = () => this.setState({ showBookFilter: true });
   stopClickPropagation = (e) => e.stopPropagation();
   closeBookFilter = () => this.setState({ showBookFilter: false });
-  openSpellAddModal = () => this.setState({ showSpellAddModal: true });
+  openSpellAddModal = () => this.setState({ showSpellAddModal: true, spellAddTab: 'cantrip', spellAddSelected: null, spellAddSearch: '' });
   closeSpellAddModal = () => this.setState({ showSpellAddModal: false });
+  // Switching rank tabs clears the selection, since the selected spell is no longer in the list.
+  setSpellAddTab = (key) => this.setState({ spellAddTab: key, spellAddSelected: null });
+  selectSpellToAdd = (name) => this.setState({ spellAddSelected: name });
+  setSpellAddSearchField = (e) => this.setState({ spellAddSearch: e.target.value });
+  // Adds the spell shown in the detail pane. Focus spells carry no prepared flag (they're cast from
+  // the focus pool), matching how the two old dropdowns each built their entry. The modal stays open
+  // so several spells can be added in one visit; the row flips to "In spellbook" as confirmation.
+  addSelectedSpell = () => {
+    const name = this.state.spellAddSelected; if (!name) return;
+    const sp = this.state.data.SPELLS.find(x => x.name === name); if (!sp) return;
+    this.updateActiveChar(c => {
+      // Ignore the cleric's Divine Font row when checking for duplicates: it's a Heal/Harm entry in
+      // spellsKnown that doesn't represent a spellbook entry (see isFontEntry in renderVals).
+      const alreadyKnown = c.spellsKnown.some(k => k.name === sp.name && !(k.font && c.divineFont && k.font === c.divineFont));
+      if (alreadyKnown) return c;
+      return { ...c, spellsKnown: [...c.spellsKnown, sp.focus ? { ...sp, cast: false } : { ...sp, prepared: false, cast: false }] };
+    });
+  };
   openFormulaAddModal = () => this.setState({ showFormulaAddModal: true });
   closeFormulaAddModal = () => this.setState({ showFormulaAddModal: false });
   openXPModal = () => this.setState({ showXPModal: true });
@@ -3116,13 +3190,6 @@ class Component extends DCLogic {
   };
   currentChar = () => this.state.characters.find(c => c.id === this.state.activeId) || {};
 
-  setSpellPickForRank = (key, val) => this.setState(s => ({ spellPicksByRank: { ...s.spellPicksByRank, [key]: val } }));
-  addSpellFromPickForRank = (key) => {
-    const name = (this.state.spellPicksByRank || {})[key]; if (!name) return;
-    const sp = this.state.data.SPELLS.find(s => s.name === name && !s.focus); if (!sp) return;
-    this.updateActiveChar(c => ({ ...c, spellsKnown: [...c.spellsKnown, { ...sp, prepared: false, cast: false }] }));
-    this.setState(s => ({ spellPicksByRank: { ...s.spellPicksByRank, [key]: '' } }));
-  };
   removeSpell = (idx) => this.updateActiveChar(c => ({ ...c, spellsKnown: c.spellsKnown.filter((_, i) => i !== idx) }));
   togglePrepared = (idx) => this.updateActiveChar(c => ({ ...c, spellsKnown: c.spellsKnown.map((sp, i) => i === idx ? { ...sp, prepared: !sp.prepared } : sp) }));
   // Activated item abilities (e.g. the Sparkblade's once-per-day lightning arc). Tracked per
@@ -3152,13 +3219,6 @@ class Component extends DCLogic {
     const spellSlots = { ...c.spellSlots, [target.level]: { used } };
     return { ...c, spellsKnown, spellSlots };
   });
-  setFocusPickField = (e) => this.setState({ focusPick: e.target.value });
-  addFocusSpellFromPick = () => {
-    const name = this.state.focusPick; if (!name) return;
-    const sp = this.state.data.SPELLS.find(s => s.name === name && s.focus); if (!sp) return;
-    this.updateActiveChar(c => ({ ...c, spellsKnown: [...c.spellsKnown, { ...sp, cast: false }] }));
-    this.setState({ focusPick: '' });
-  };
   toggleFocusCast = (idx) => this.updateActiveChar(c => {
     const target = c.spellsKnown[idx]; if (!target) return c;
     const willCast = !target.cast;
@@ -4268,21 +4328,79 @@ class Component extends DCLogic {
     // the add-spell picker as the wizard levels past 1st and unlocks more curriculum ranks.
     const curriculumNames = new Set();
     if (charSubclass && charSubclass.curriculum) Object.values(charSubclass.curriculum).forEach(names => names.forEach(n => curriculumNames.add(n)));
-    const SPELL_ADD_RANK_DEFS = [{ key: 'cantrip', label: 'Cantrips' }];
-    for (let r = 1; r <= maxRank; r++) SPELL_ADD_RANK_DEFS.push({ key: 'lvl' + r, label: 'Level ' + r, level: r });
-    const spellAddGroups = SPELL_ADD_RANK_DEFS.map(def => {
-      const options = spellLibAll.filter(sp => def.key === 'cantrip' ? sp.cantrip : (!sp.cantrip && sp.level === def.level))
-        .map(sp => ({ name: sp.name, label: curriculumNames.has(sp.name) ? sp.name + ' (Curriculum)' : sp.name }));
-      if (def.key === 'cantrip') options.sort((a, b) => a.name.localeCompare(b.name));
-      return {
-        key: def.key, label: def.label, options,
-        pick: (s.spellPicksByRank || {})[def.key] || '',
-        setPick: (e) => this.setSpellPickForRank(def.key, e.target.value),
-        add: () => this.addSpellFromPickForRank(def.key),
-      };
-    }).filter(g => g.options.length > 0);
-    const focusSpellLibOptions = data.SPELLS.filter(sp => sp.focus && bf[sp.book] && (!cls || sp.tradition === cls.name))
-      .map(sp => ({ name: sp.name, label: sp.name + ' (' + sp.tradition + ')' }));
+    // ---- Add Spells browser (modal) -------------------------------------------------------
+    // A tabbed list on the left (one tab per rank the character can cast, plus Focus) feeding a
+    // detail pane on the right. Each tab's candidates come from the same filtered pools the old
+    // dropdowns used, so tradition gating, book filters, rank caps and deity/witch grants are
+    // unchanged.
+    const focusSpellLib = data.SPELLS.filter(sp => sp.focus && bf[sp.book] && (!cls || sp.tradition === cls.name));
+    const SPELL_ADD_TAB_DEFS = [{ key: 'cantrip', label: 'Cantrips' }];
+    for (let r = 1; r <= maxRank; r++) SPELL_ADD_TAB_DEFS.push({ key: 'lvl' + r, label: 'Level ' + r, level: r });
+    if (focusSpellLib.length) SPELL_ADD_TAB_DEFS.push({ key: 'focus', label: 'Focus' });
+    const spellsForAddTab = (key) => {
+      const def = SPELL_ADD_TAB_DEFS.find(d => d.key === key) || SPELL_ADD_TAB_DEFS[0];
+      if (!def) return [];
+      if (def.key === 'focus') return focusSpellLib.slice().sort((a, b) => a.name.localeCompare(b.name));
+      return spellLibAll.filter(sp => def.key === 'cantrip' ? sp.cantrip : (!sp.cantrip && sp.level === def.level))
+        .slice().sort((a, b) => a.name.localeCompare(b.name));
+    };
+    // Fall back to the first tab when the active one isn't valid for this character (e.g. the Focus
+    // tab was open, then the class changed and focus spells went away).
+    const spellAddTab = SPELL_ADD_TAB_DEFS.some(d => d.key === s.spellAddTab) ? s.spellAddTab : (SPELL_ADD_TAB_DEFS[0] || {}).key;
+    const spellAddTabs = SPELL_ADD_TAB_DEFS.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === spellAddTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setSpellAddTab(d.key),
+    }));
+    // A cleric's Divine Font entry is a Heal/Harm row in spellsKnown that isn't a spellbook entry —
+    // it must not block adding Heal/Harm as an ordinary prepared spell, so it's excluded here.
+    const knownSpellNames = new Set(char.spellsKnown.filter(sp => !isFontEntry(sp)).map(sp => sp.name));
+    const spellAddQuery = (s.spellAddSearch || '').trim().toLowerCase();
+    const spellAddRows = spellsForAddTab(spellAddTab)
+      .filter(sp => !spellAddQuery || sp.name.toLowerCase().includes(spellAddQuery))
+      .map(sp => {
+        const known = knownSpellNames.has(sp.name);
+        const selected = s.spellAddSelected === sp.name;
+        const rangeMatch = /^(\d)-(\d)$/.exec(sp.action || '');
+        return {
+          name: sp.name, tradition: sp.tradition || '',
+          isCurriculum: curriculumNames.has(sp.name), known,
+          actionIcon: ACTION_ICONS[sp.action] || '', hasActionIcon: !!ACTION_ICONS[sp.action],
+          actionIconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',
+          actionIconHigh: rangeMatch ? (ACTION_ICONS[rangeMatch[2]] || '') : '',
+          hasRangeActionIcon: !!rangeMatch,
+          select: () => this.selectSpellToAdd(sp.name),
+          rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);background:${selected ? 'var(--color-neutral-700)' : 'transparent'}${known ? ';opacity:0.45' : ''}`,
+        };
+      });
+    const spellAddDef = s.spellAddSelected ? data.SPELLS.find(sp => sp.name === s.spellAddSelected) : null;
+    const spellAddDetailRangeMatch = spellAddDef ? /^(\d)-(\d)$/.exec(spellAddDef.action || '') : null;
+    const spellAddFacts = spellAddDef ? [
+      { label: 'Rank', value: spellAddDef.cantrip ? 'Cantrip' : (spellAddDef.focus ? 'Focus ' + spellAddDef.level : String(spellAddDef.level)) },
+      { label: 'Tradition', value: spellAddDef.tradition || '' },
+      { label: 'Range', value: spellAddDef.range || '' },
+      { label: 'Area', value: spellAddDef.area || '' },
+      { label: 'Target', value: spellAddDef.target || '' },
+      { label: 'Damage', value: spellAddDef.damage || '' },
+    ].filter(f => f.value) : [];
+    const spellAddKnown = !!(spellAddDef && knownSpellNames.has(spellAddDef.name));
+    const spellAddDetail = {
+      hasSelection: !!spellAddDef, hasNoSelection: !spellAddDef,
+      name: spellAddDef ? spellAddDef.name : '',
+      desc: spellAddDef ? spellAddDef.desc : '',
+      facts: spellAddFacts,
+      heightened: (spellAddDef && spellAddDef.heightened) || '',
+      hasHeightened: !!(spellAddDef && spellAddDef.heightened),
+      bookName: spellAddDef ? ((data.BOOKS.find(b => b.key === spellAddDef.book) || {}).name || '') : '',
+      isCurriculum: !!(spellAddDef && curriculumNames.has(spellAddDef.name)),
+      actionIcon: spellAddDef ? (ACTION_ICONS[spellAddDef.action] || '') : '',
+      hasActionIcon: !!(spellAddDef && ACTION_ICONS[spellAddDef.action]),
+      actionIconLow: spellAddDetailRangeMatch ? (ACTION_ICONS[spellAddDetailRangeMatch[1]] || '') : '',
+      actionIconHigh: spellAddDetailRangeMatch ? (ACTION_ICONS[spellAddDetailRangeMatch[2]] || '') : '',
+      hasRangeActionIcon: !!spellAddDetailRangeMatch,
+      known: spellAddKnown,
+      addLabel: spellAddKnown ? 'In Spellbook' : 'Add Spell',
+    };
     const slotRows = [];
     for (let r = 1; r <= maxRank; r++) {
       if (isSpontaneousCaster) {
@@ -4563,15 +4681,17 @@ class Component extends DCLogic {
         ...((char.classKey === 'cleric' && charDeity && charDeity.anathema) ? [{ name: 'Anathema', desc: `Acting against ${charDeity.name}'s edicts can cost you your divine powers. Anathema: ${charDeity.anathema}.`, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charSubclass && charSubclass.key === 'cloistered' && char.level >= 3) ? [{ name: 'Second Doctrine', desc: 'Your proficiency rank for Fortitude saves increases to expert.', icon: '', hasIcon: false }] : []),
       ].sort((a, b) => a.name.localeCompare(b.name)) : [],
-      showSpellSlots: !!(cls && cls.spellcasting), spellbookGroups, availableSpellGroups, spellAddGroups, slotRows,
+      showSpellSlots: !!(cls && cls.spellcasting), spellbookGroups, availableSpellGroups, slotRows,
       hasStaffNexus, staffCharges, staffPreparesToday, staffPreparesMax, staffPrepareAtMax,
       staffPrepareRankVal: s.staffPrepareRank || '', setStaffPrepareRank: this.setStaffPrepareRank, prepareStaff: this.prepareStaff, undoStaffPrepare: this.undoStaffPrepare, staffPrepareRankOptions,
       incStaffCharges: this.incStaffCharges, decStaffCharges: this.decStaffCharges,
       staffSpellRows, staffSpellPickVal: s.staffSpellPick || '', setStaffSpellPick: this.setStaffSpellPick, addStaffSpellFromPick: this.addStaffSpellFromPick, staffSpellPickOptions,
       cantripsUnlimited, cantripsPrepared, cantripKnownCount, preparedCantripCount,
       hasDivineFont, fontLabel, fontMax, fontRemaining,
-      focusSpellLibOptions, focusPick: s.focusPick, setFocusPick: this.setFocusPickField, addFocusSpellFromPick: this.addFocusSpellFromPick,
       showSpellAddModal: s.showSpellAddModal, openSpellAddModal: this.openSpellAddModal, closeSpellAddModal: this.closeSpellAddModal,
+      spellAddTabs, spellAddRows, spellAddDetail, hasNoSpellAddRows: spellAddRows.length === 0,
+      spellAddSearch: s.spellAddSearch || '', setSpellAddSearch: this.setSpellAddSearchField,
+      addSelectedSpell: this.addSelectedSpell,
       isAlchemist, vialsMax, vialsUsed, vialsRemaining: Math.max(0, vialsMax - vialsUsed), vialPips, advancedAlchemyCapacity,
       formulaBookGroups, preparedAlchemyGroups, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
       hasNoPreparedAlchemy: preparedAlchemyRowsFull.length === 0,
