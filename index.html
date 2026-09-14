@@ -4264,6 +4264,7 @@ class Component extends DCLogic {
       if (def.range) parts.push('Range: ' + def.range);
       if (def.target) parts.push('Target: ' + def.target);
       if (def.area) parts.push('Area: ' + def.area);
+      if (def.duration) parts.push('Duration: ' + def.duration);
       if (def.tradition) parts.push(def.tradition);
       const hasMeta = parts.length > 0;
       // Being cast above its base rank isn't enough to call a spell heightened — it has to have
@@ -4456,6 +4457,7 @@ class Component extends DCLogic {
       { label: 'Range', value: spellAddDef.range || '' },
       { label: 'Area', value: spellAddDef.area || '' },
       { label: 'Target', value: spellAddDef.target || '' },
+      { label: 'Duration', value: spellAddDef.duration || '' },
       { label: 'Damage', value: spellAddDef.damage || '' },
     ].filter(f => f.value) : [];
     const spellAddKnown = !!(spellAddDef && knownSpellNames.has(spellAddDef.name));
