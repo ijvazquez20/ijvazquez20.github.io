@@ -2325,6 +2325,12 @@ function maxSpellRankForLevel(level) {
   return Math.min(10, Math.ceil((level || 1) / 2));
 }
 
+// Spell ranks read as ordinals in PF2e ("Heightened (3rd)"), so 1st/2nd/3rd then -th.
+function ordinalRank(n) {
+  const suffix = n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th';
+  return `${n}${suffix}`;
+}
+
 // Heightening damage can't be derived from the base dice: the interval varies (Electric Arc scales
 // every rank, Caustic Blast every two) and so does the amount (a cantrip typically gains one die,
 // while a ranked or focus spell usually gains its whole base dice — Fire Ray is 2d6 and gains 2d6
@@ -4260,24 +4266,29 @@ class Component extends DCLogic {
       if (def.area) parts.push('Area: ' + def.area);
       if (def.tradition) parts.push(def.tradition);
       const hasMeta = parts.length > 0;
-      // Being cast above its base rank isn't enough to call a spell heightened: a spell only gains
-      // anything once it clears a full heightening interval, and that interval varies (Force Bolt
-      // and Daze improve every 2 ranks, so at +1 rank nothing has changed yet). Spells with no
-      // heightening data — Shield, say, whose hardness steps up only at specific ranks — get no
-      // badge at all rather than a claim we can't back up.
-      // The "(+N)" shown is the spell's own interval, matching how the rulebook writes the entry,
-      // not the number of ranks above base.
+      // Being cast above its base rank isn't enough to call a spell heightened — it has to have
+      // actually gained something. The rulebook writes that two different ways, and spells use one
+      // or the other:
+      //   heightenStep — an interval, "Heightened (+2)". Nothing changes until a full interval has
+      //     elapsed, so Force Bolt at +1 rank is still unheightened.
+      //   heightenAt   — fixed ranks, "Heightened (3rd)". Detect Magic gains something at 3rd and
+      //     again at 4th, and nothing in between.
+      // Either way the label echoes the rulebook's own notation rather than counting ranks above
+      // base. Spells with neither get no badge instead of a claim we can't back up.
+      const effectiveRank = effRank == null ? baseRank : effRank;
       const heightenStep = def.heightenStep || 0;
+      const heightenAt = Array.isArray(def.heightenAt) ? def.heightenAt.filter(r => effectiveRank >= r) : [];
       const heightenSteps = heightenStep
-        ? Math.floor(Math.max(0, (effRank == null ? baseRank : effRank) - baseRank) / heightenStep)
+        ? Math.floor(Math.max(0, effectiveRank - baseRank) / heightenStep)
         : 0;
-      const isHeightened = heightenSteps > 0;
+      const isHeightened = heightenSteps > 0 || heightenAt.length > 0;
+      const heightenNote = heightenStep ? `+${heightenStep}` : (heightenAt.length ? ordinalRank(Math.max(...heightenAt)) : '');
       // Variable-cost spells (e.g. Heal, "1 to 3") are stored as a 'lo-hi' action code rather than
       // a single ACTION_ICONS key, and render as two icons joined by "to".
       const rangeMatch = /^(\d)-(\d)$/.exec(def.action || '');
       return {
         meta: parts.join(' · '),
-        isHeightened, heightenLabel: isHeightened ? `Heightened (+${heightenStep})` : '',
+        isHeightened, heightenLabel: isHeightened ? `Heightened (${heightenNote})` : '',
         heightenNeedsDot: hasMeta && isHeightened, metaEmptyHeightened: !hasMeta && isHeightened,
         icon: ACTION_ICONS[def.action] || '', hasIcon: !!ACTION_ICONS[def.action],
         iconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',
