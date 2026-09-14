@@ -4260,13 +4260,24 @@ class Component extends DCLogic {
       if (def.area) parts.push('Area: ' + def.area);
       if (def.tradition) parts.push(def.tradition);
       const hasMeta = parts.length > 0;
-      const isHeightened = effRank != null && effRank > baseRank;
+      // Being cast above its base rank isn't enough to call a spell heightened: a spell only gains
+      // anything once it clears a full heightening interval, and that interval varies (Force Bolt
+      // and Daze improve every 2 ranks, so at +1 rank nothing has changed yet). Spells with no
+      // heightening data — Shield, say, whose hardness steps up only at specific ranks — get no
+      // badge at all rather than a claim we can't back up.
+      // The "(+N)" shown is the spell's own interval, matching how the rulebook writes the entry,
+      // not the number of ranks above base.
+      const heightenStep = def.heightenStep || 0;
+      const heightenSteps = heightenStep
+        ? Math.floor(Math.max(0, (effRank == null ? baseRank : effRank) - baseRank) / heightenStep)
+        : 0;
+      const isHeightened = heightenSteps > 0;
       // Variable-cost spells (e.g. Heal, "1 to 3") are stored as a 'lo-hi' action code rather than
       // a single ACTION_ICONS key, and render as two icons joined by "to".
       const rangeMatch = /^(\d)-(\d)$/.exec(def.action || '');
       return {
         meta: parts.join(' · '),
-        isHeightened, heightenLabel: isHeightened ? `Heightened (+${effRank - baseRank})` : '',
+        isHeightened, heightenLabel: isHeightened ? `Heightened (+${heightenStep})` : '',
         heightenNeedsDot: hasMeta && isHeightened, metaEmptyHeightened: !hasMeta && isHeightened,
         icon: ACTION_ICONS[def.action] || '', hasIcon: !!ACTION_ICONS[def.action],
         iconLow: rangeMatch ? (ACTION_ICONS[rangeMatch[1]] || '') : '',

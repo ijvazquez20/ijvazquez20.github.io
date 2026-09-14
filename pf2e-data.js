@@ -1558,7 +1558,7 @@ export const SPELLS = [
   { name: 'Enfeeble', level: 1, tradition: 'Arcane/Divine/Occult', book: 'player-core', desc: 'Sap a creature’s strength.', range: '30 feet', target: '1 creature', action: '2' },
   { name: 'Fear', level: 1, tradition: 'Arcane/Divine/Occult/Primal', book: 'player-core', desc: 'Frighten a creature, possibly making it flee.', range: '30 feet', target: '1 creature', action: '2' },
   { name: 'Fleet Step', level: 1, tradition: 'Arcane/Primal', book: 'player-core', desc: 'Make your Speed much faster.', action: '2' },
-  { name: 'Force Barrage', level: 1, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Pelt creatures with unerring shards of magical force.', damage: '1d4+1', range: '120 feet', target: '1 creature', action: '1-3', heightened: "(+2) You shoot one additional missile." },
+  { name: 'Force Barrage', level: 1, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Pelt creatures with unerring shards of magical force.', damage: '1d4+1', range: '120 feet', target: '1 creature', action: '1-3', heightened: "(+2) You shoot one additional missile.", heightenStep: 2 },
   { name: 'Gentle Landing', level: 1, tradition: 'Arcane/Primal', book: 'player-core', desc: 'React to save a falling creature.', range: '60 feet', target: '1 falling creature', action: 'R' },
   { name: 'Goblin Pox', level: 1, tradition: 'Arcane/Primal', book: 'player-core', desc: 'Infect a creature with goblin pox.', range: 'touch', target: '1 creature', action: '2' },
   { name: 'Grease', level: 1, tradition: 'Arcane/Primal', book: 'player-core', desc: 'Cover a target or an area with slippery grease.', range: '30 feet', target: '1 object of Bulk 1 or less', action: '2' },
