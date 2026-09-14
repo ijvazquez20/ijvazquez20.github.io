@@ -20,6 +20,9 @@
     select,input[type="number"],input[type="text"],textarea{font-family:var(--font-body);background:var(--color-neutral-800);color:var(--color-text);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:6px 8px}
     select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
     input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+    /* Stop a dialog's scrolling from chaining to the page behind it once it reaches an edge.
+       Panes that scroll inside a dialog set overscroll-behavior on their own inline styles. */
+    .dialog-body{overscroll-behavior:contain}
     [data-tab-id].tab-dragging{opacity:0.4}
     [data-tab-id].tab-drop-before{box-shadow:inset 2px 0 0 var(--color-accent)}
     [data-tab-id].tab-drop-after{box-shadow:inset -2px 0 0 var(--color-accent)}
@@ -1825,7 +1828,7 @@
               </sc-for>
             </div>
             <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search spells…" value="{{ spellAddSearch }}" onChange="{{ setSpellAddSearch }}">
-            <div style="height:48vh;overflow-y:auto;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
               <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
                 <span style="flex:1;min-width:0">Name</span>
                 <span style="width:132px;flex:none">Tradition</span>
@@ -1866,7 +1869,7 @@
 
           <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
             <sc-if value="{{ spellAddDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
-              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;max-height:56vh">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                   <span style="font:500 28px var(--font-heading)">{{ spellAddDetail.name }}</span>
                   <sc-if value="{{ spellAddDetail.hasActionIcon }}" hint-placeholder-val="{{ false }}">
