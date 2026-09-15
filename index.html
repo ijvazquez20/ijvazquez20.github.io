@@ -23,6 +23,9 @@
     /* Stop a dialog's scrolling from chaining to the page behind it once it reaches an edge.
        Panes that scroll inside a dialog set overscroll-behavior on their own inline styles. */
     .dialog-body{overscroll-behavior:contain}
+    /* A section heading inside a table body is a label, not a row: no divider, no hover tint.
+       Both live on .table tbody tr as backgrounds, so they have to be cleared there. */
+    .table tbody tr.section-row,.table tbody tr.section-row:hover{background:none}
     [data-tab-id].tab-dragging{opacity:0.4}
     [data-tab-id].tab-drop-before{box-shadow:inset 2px 0 0 var(--color-accent)}
     [data-tab-id].tab-drop-after{box-shadow:inset -2px 0 0 var(--color-accent)}
@@ -1488,8 +1491,8 @@
                 <tbody>
                   <sc-for list="{{ inventoryRows }}" as="it" hint-placeholder-count="3">
                     <sc-if value="{{ it.isHeader }}" hint-placeholder-val="{{ false }}">
-                      <tr>
-                        <td colSpan="6" style="border:none;padding:var(--space-3) 0 2px;font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300)">{{ it.headerLabel }}</td>
+                      <tr class="section-row">
+                        <td colSpan="6" style="{{ it.headerStyle }}">{{ it.headerLabel }}</td>
                       </tr>
                     </sc-if>
                     <sc-if value="{{ it.isItem }}" hint-placeholder-val="{{ true }}">
@@ -4710,9 +4713,12 @@ class Component extends DCLogic {
     // Headings only appear when there is something in both groups to tell apart.
     const consumableRows = inventoryRowsFlat.filter(r => r.isConsumable);
     const otherInventoryRows = inventoryRowsFlat.filter(r => !r.isConsumable);
+    // The first heading sits right under the table head, so it needs less space above it than the
+    // one that has to separate itself from the list before it.
+    const sectionHeaderStyle = (topSpace) => `border:none;padding:${topSpace} 0 2px;font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300)`;
     const inventoryRows = (consumableRows.length && otherInventoryRows.length)
-      ? [{ isHeader: true, headerLabel: 'Consumables' }, ...consumableRows,
-         { isHeader: true, headerLabel: 'Other Items' }, ...otherInventoryRows]
+      ? [{ isHeader: true, headerLabel: 'Consumables', headerStyle: sectionHeaderStyle('var(--space-2)') }, ...consumableRows,
+         { isHeader: true, headerLabel: 'Other Items', headerStyle: sectionHeaderStyle('var(--space-6)') }, ...otherInventoryRows]
       : inventoryRowsFlat;
 
     const activeKeys = char.conditions.map(cd => cd.key);
