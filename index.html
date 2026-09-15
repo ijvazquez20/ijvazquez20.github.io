@@ -1487,6 +1487,12 @@
                 <thead><tr><th>Item</th><th>Qty</th><th>Bulk</th><th>Price</th><th>Notes</th><th></th></tr></thead>
                 <tbody>
                   <sc-for list="{{ inventoryRows }}" as="it" hint-placeholder-count="3">
+                    <sc-if value="{{ it.isHeader }}" hint-placeholder-val="{{ false }}">
+                      <tr>
+                        <td colSpan="6" style="border:none;padding:var(--space-3) 0 2px;font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300)">{{ it.headerLabel }}</td>
+                      </tr>
+                    </sc-if>
+                    <sc-if value="{{ it.isItem }}" hint-placeholder-val="{{ true }}">
                     <tr>
                       <td><span style="position:relative;cursor:default" onMouseEnter="{{ it.onNameEnter }}" onMouseLeave="{{ it.onNameLeave }}">{{ it.name }}
                         <sc-if value="{{ it.nameHovered }}" hint-placeholder-val="{{ false }}">
@@ -1517,6 +1523,7 @@
                         <button class="btn btn-icon" title="Remove" onClick="{{ it.remove }}"><i class="ph ph-trash"></i></button>
                       </div></td>
                     </tr>
+                    </sc-if>
                     <sc-if value="{{ it.hasActivations }}" hint-placeholder-val="{{ false }}">
                       <tr>
                         <td colSpan="6" style="padding:0;border:none">
@@ -4650,7 +4657,7 @@ class Component extends DCLogic {
       setValue: (e) => this.setCurrency(cd.key, e.target.value),
     }));
     const SKILL_LABEL = Object.fromEntries(data.SKILLS.map(sk => [sk.key, sk.name]));
-    const inventoryRows = char.inventory.map((it, i) => {
+    const inventoryRowsFlat = char.inventory.map((it, i) => {
       // Looked up by name rather than trusting a desc stored on the inventory entry itself, so
       // items added before descriptions existed in the data still get a tooltip.
       const gearDef = data.GEAR.find(x => x.name === it.name) || {};
@@ -4692,12 +4699,21 @@ class Component extends DCLogic {
         hasGrants: !!grantSummary,
         wornIconStyle: `font-size:16px;color:${worn ? 'var(--color-accent-300)' : 'var(--color-neutral-500)'}`,
         wornTitle: grantSummary ? (worn ? `Worn — applying ${grantSummary}` : `Not worn — ${grantSummary} inactive`) : (worn ? 'Worn' : 'Not worn'),
+        isItem: true, isConsumable: activationRows.some(r => r.consumable),
         hasActivations: activationRows.length > 0, activations: activationRows, activationsExpanded,
         toggleActivations: () => this.toggleInventoryActivations(char.id, i),
         activationsCaretClass: activationsExpanded ? 'ph-lightning-slash' : 'ph-lightning',
         activationsGridStyle: 'display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:' + (activationsExpanded ? '1fr' : '0fr'),
       };
     }).sort((a, b) => a.name.localeCompare(b.name));
+    // Consumables come first under their own heading, since they're the rows you act on in play.
+    // Headings only appear when there is something in both groups to tell apart.
+    const consumableRows = inventoryRowsFlat.filter(r => r.isConsumable);
+    const otherInventoryRows = inventoryRowsFlat.filter(r => !r.isConsumable);
+    const inventoryRows = (consumableRows.length && otherInventoryRows.length)
+      ? [{ isHeader: true, headerLabel: 'Consumables' }, ...consumableRows,
+         { isHeader: true, headerLabel: 'Other Items' }, ...otherInventoryRows]
+      : inventoryRowsFlat;
 
     const activeKeys = char.conditions.map(cd => cd.key);
     const activeConditionRows = char.conditions.map(cd => {
