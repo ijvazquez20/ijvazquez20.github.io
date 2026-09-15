@@ -1546,7 +1546,9 @@
                                         <span style="font-size:11px;color:var(--color-neutral-400)">{{ act.usesLabel }}</span>
                                       </sc-if>
                                     </div>
-                                    <div style="font-size:12px;color:var(--color-neutral-300);margin-top:2px">{{ act.desc }}</div>
+                                    <sc-if value="{{ act.hasDesc }}" hint-placeholder-val="{{ false }}">
+                                      <div style="font-size:12px;color:var(--color-neutral-300);margin-top:2px">{{ act.desc }}</div>
+                                    </sc-if>
                                     <sc-if value="{{ act.hasMeta }}" hint-placeholder-val="{{ false }}">
                                       <div style="font-size:11px;color:var(--color-neutral-400);margin-top:2px">{{ act.meta }}</div>
                                     </sc-if>
@@ -3362,6 +3364,15 @@ class Component extends DCLogic {
   };
   updateInventory = (idx, field, val) => this.updateActiveChar(c => { const inv = [...c.inventory]; inv[idx] = { ...inv[idx], [field]: field === 'qty' ? Number(val) || 0 : val }; return { ...c, inventory: inv }; });
   removeInventory = (idx) => this.updateActiveChar(c => ({ ...c, inventory: c.inventory.filter((_, i) => i !== idx) }));
+  // Drinking a potion spends the item itself, so it decrements the stack rather than setting the
+  // per-day flag an activation normally uses — a Full Rest must not hand the potion back.
+  consumeInventoryItem = (idx) => this.updateActiveChar(c => {
+    const inv = [...c.inventory];
+    const it = inv[idx]; if (!it) return c;
+    const qty = Math.max(0, (Number(it.qty) || 0) - 1);
+    inv[idx] = { ...it, qty };
+    return { ...c, inventory: inv };
+  });
   setCurrency = (key, val) => this.updateActiveChar(c => ({ ...c, currency: { ...c.currency, [key]: Math.max(0, Number(val) || 0) } }));
   setHeroPoints = (n) => this.updateActiveChar(c => ({ ...c, heroPoints: (c.heroPoints || 0) === n ? n - 1 : n }));
   // Toggles a familiar ability in today's selection, silently ignoring attempts to add past the
@@ -3977,7 +3988,7 @@ class Component extends DCLogic {
       // matching how the Heal spell shows its action range.
       const costRange = /^(\d)-(\d)$/.exec(act.cost || '');
       return {
-        name: act.name, desc: act.desc || '',
+        name: act.name, desc: act.desc || '', hasDesc: !!act.desc, consumable: !!act.consumable,
         cost: act.cost || '', icon: ACTION_ICONS[act.cost] || '', hasIcon: !!ACTION_ICONS[act.cost],
         iconLow: costRange ? (ACTION_ICONS[costRange[1]] || '') : '', iconHigh: costRange ? (ACTION_ICONS[costRange[2]] || '') : '', hasCostRange: !!costRange,
         meta: metaBits, hasMeta: !!metaBits,
@@ -4652,7 +4663,18 @@ class Component extends DCLogic {
       const worn = !!it.worn;
       // Activatable gear (e.g. the Pyrite Rat) shows its own expand icon, independent of the worn
       // toggle — like the Sparkblade's activation, it doesn't require a separate "equip" step.
-      const activationRows = buildActivationRows(it.name, gearDef.activations);
+      // A consumable's activation spends the item, so its Use button decrements this stack and its
+      // label reports what's left instead of a per-day allowance.
+      const qtyLeft = Number(it.qty) || 0;
+      const activationRows = buildActivationRows(it.name, gearDef.activations).map(row => row.consumable ? {
+        ...row,
+        spent: qtyLeft <= 0,
+        useLabel: qtyLeft > 0 ? 'Use' : 'None left',
+        useBtnClass: qtyLeft > 0 ? 'btn btn-secondary' : 'btn btn-ghost',
+        usesLabel: qtyLeft + ' left', hasUsesLabel: true,
+        toggleUse: () => { if (qtyLeft > 0) this.consumeInventoryItem(i); },
+        rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (qtyLeft > 0 ? '' : ';opacity:0.55'),
+      } : row);
       const activationsExpanded = !!(s.expandedInventoryActivations[char.id] || {})[i];
       return {
         name: it.name, qty: it.qty, bulk: it.bulk, price: gearDef.price || '', notes: it.notes,
