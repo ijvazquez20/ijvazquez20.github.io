@@ -4666,15 +4666,21 @@ class Component extends DCLogic {
       // A consumable's activation spends the item, so its Use button decrements this stack and its
       // label reports what's left instead of a per-day allowance.
       const qtyLeft = Number(it.qty) || 0;
-      const activationRows = buildActivationRows(it.name, gearDef.activations).map(row => row.consumable ? {
-        ...row,
-        spent: qtyLeft <= 0,
-        useLabel: qtyLeft > 0 ? 'Use' : 'None left',
-        useBtnClass: qtyLeft > 0 ? 'btn btn-secondary' : 'btn btn-ghost',
-        usesLabel: qtyLeft + ' left', hasUsesLabel: true,
-        toggleUse: () => { if (qtyLeft > 0) this.consumeInventoryItem(i); },
-        rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (qtyLeft > 0 ? '' : ';opacity:0.55'),
-      } : row);
+      const activationRows = buildActivationRows(it.name, gearDef.activations).map(row => {
+        // An activation with no text of its own — a potion's Drink, say — is just the item's own
+        // effect, so show that rather than leaving the drawer with nothing but a button.
+        const r = row.hasDesc ? row : { ...row, desc: itemDesc, hasDesc: !!itemDesc };
+        if (!r.consumable) return r;
+        return {
+          ...r,
+          spent: qtyLeft <= 0,
+          useLabel: qtyLeft > 0 ? 'Use' : 'None left',
+          useBtnClass: qtyLeft > 0 ? 'btn btn-secondary' : 'btn btn-ghost',
+          usesLabel: qtyLeft + ' left', hasUsesLabel: true,
+          toggleUse: () => { if (qtyLeft > 0) this.consumeInventoryItem(i); },
+          rowStyle: 'padding:var(--space-2) 0;border-bottom:1px solid var(--color-neutral-800)' + (qtyLeft > 0 ? '' : ';opacity:0.55'),
+        };
+      });
       const activationsExpanded = !!(s.expandedInventoryActivations[char.id] || {})[i];
       return {
         name: it.name, qty: it.qty, bulk: it.bulk, price: gearDef.price || '', notes: it.notes,
