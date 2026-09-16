@@ -1,0 +1,28 @@
+// 6th-rank spells.
+
+export const RANK_6 = [
+  { name: 'Blessed Boundary', level: 6, tradition: 'Divine', book: 'player-core', desc: 'Manifest divine force in a protective sphere.', range: '120 feet', area: '60-foot burst', action: '3' },
+  { name: 'Chain Lightning', level: 6, tradition: 'Arcane/Primal', book: 'player-core', desc: 'An arc of lightning jumps from creature to creature.', range: '500 feet', target: '1 creature, plus any number of additional creatures', action: '2' },
+  { name: 'Cursed Metamorphosis', level: 6, tradition: 'Arcane/Occult/Primal', book: 'player-core', desc: 'Transform the target into a harmless animal.', range: '30 feet', target: '1 creature', action: '2' },
+  { name: 'Disintegrate', level: 6, tradition: 'Arcane', book: 'player-core', desc: 'Reduce a creature or object to dust.', range: '120 feet', target: '1 creature, unattended object, or force construct', action: '2' },
+  { name: 'Dominate', level: 6, tradition: 'Arcane/Divine/Occult', book: 'player-core', desc: 'A creature must obey your orders.', range: '30 feet', target: '1 creature', action: '2' },
+  { name: 'Dragon Form', level: 6, tradition: 'Arcane/Divine/Occult/Primal', book: 'player-core', desc: 'Turn into a dragon.', action: '2' },
+  { name: 'Field of Life', level: 6, tradition: 'Divine/Primal', book: 'player-core', desc: 'Create a vital energy field that heals those who remain within.', range: '30 feet', area: '20-foot burst', action: '2' },
+  { name: 'Mislead', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Turn invisible and create a duplicate of yourself who acts like you.', action: '2' },
+  { name: 'Never Mind', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Stupefy a creature permanently.', range: '30 feet', target: '1 creature', action: '2' },
+  { name: 'Petrify', level: 6, tradition: 'Arcane/Primal', book: 'player-core', desc: 'Turn a creature into a stone statue.', range: '120 feet', target: '1 creature made of organic material', action: '2' },
+  { name: 'Phantasmal Calamity', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Create visions of an apocalypse to damage creatures mentally.', range: '500 feet', area: '30-foot burst', action: '2' },
+  { name: 'Raise Dead', level: 6, tradition: 'Divine', book: 'player-core', desc: 'Return a dead creature to life.', range: '10 feet', target: '1 dead creature of 13th level or lower' },
+  { name: 'Repulsion', level: 6, tradition: 'Arcane/Divine/Occult', book: 'player-core', desc: 'Prevent creatures from approaching you.', range: 'emanation up to 40-feet', action: '2' },
+  { name: 'Scrying', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Spy on a creature you choose.', range: 'planetary', target: '1 creature' },
+  { name: 'Spellwrack', level: 6, tradition: 'Arcane/Divine/Occult', book: 'player-core', desc: 'Curse a creature to be harmed when a spell is cast on it and lower the duration of its spells.', range: '30 feet', target: '1 creature', action: '2' },
+  { name: 'Spirit Blast', level: 6, tradition: 'Divine/Occult', book: 'player-core', desc: 'Damage a creature’s spiritual essence.', range: '30 feet', target: '1 creature', action: '2' },
+  { name: 'Tangling Creepers', level: 6, tradition: 'Arcane/Primal', book: 'player-core', desc: 'Entangle creatures in a burst and concentrate to lash out with immobilizing vines.', range: '500 feet', area: '40-foot burst', action: '3' },
+  { name: 'Teleport', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Transport you and willing creatures a great distance.', range: '100 miles', target: 'you and up to 4 targets touched, either willing creatures or objects roughly the size of a creature.' },
+  { name: 'Tree of Seasons', level: 6, tradition: 'Primal', book: 'player-core', desc: 'Grow a tree with four explosive seedpods.', range: '60 feet', action: '2' },
+  { name: 'Truesight', level: 6, tradition: 'Arcane/Divine/Occult/Primal', book: 'player-core', desc: 'See through illusions and physical transformations.', action: '2' },
+  { name: 'Vampiric Exsanguination', level: 6, tradition: 'Arcane/Divine/Occult', book: 'player-core', desc: 'Draw blood and life force from creatures in a cone, harming them and healing yourself.', area: '30-foot cone', action: '2' },
+  { name: 'Vibrant Pattern', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Make a pattern of lights that dazzles and blinds creatures who enter the area.', range: '120 feet', area: '10-foot burst', action: '2' },
+  { name: 'Wall of Force', level: 6, tradition: 'Arcane/Occult', book: 'player-core', desc: 'Create an invisible and durable plane of magical force.', range: '30 feet', action: '3' },
+  { name: 'Zealous Conviction', level: 6, tradition: 'Divine/Occult', book: 'player-core', desc: 'Instill unshakable conviction and zeal in willing creatures.', range: '30 feet', target: 'up to 10 willing creatures', action: '2' },
+];
