@@ -317,7 +317,7 @@
                 <sc-for list="{{ subclassOptions }}" as="sc" hint-placeholder-count="2">
                   <label class="radio" style="cursor:pointer;align-items:flex-start" onClick="{{ sc.select }}">
                     <span class="dot" style="margin-top:6px;{{ sc.dotStyle }}"></span>
-                    <span style="white-space:pre-line"><b>{{ sc.name }}</b> — {{ sc.desc }}</span>
+                    <span><b>{{ sc.name }}</b> — <sc-for list="{{ sc.descLines }}" as="dl" hint-placeholder-count="1"><span style="{{ dl.lineStyle }}"><b>{{ dl.label }}</b>{{ dl.rest }}</span></sc-for></span>
                   </label>
                 </sc-for>
               </div>
@@ -871,7 +871,7 @@
                               <img src="{{ act.icon }}" alt="{{ act.cost }}" style="height:20px;width:auto;vertical-align:middle">
                             </sc-if>
                           </td>
-                          <td><b>{{ act.name }}</b><div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line">{{ act.desc }}</div></td>
+                          <td><b>{{ act.name }}</b><div style="font-size:12px;color:var(--color-neutral-300)"><sc-for list="{{ act.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div></td>
                         </tr>
                       </sc-for>
                     </tbody>
@@ -2376,6 +2376,19 @@ function loadFirebaseAuth() {
   return _firebaseAuthPromise;
 }
 
+// Rules-text descriptions put each outcome/option on its own line as "Label - text"
+// (Critical Success, Benefit, Stage 1, Lesser (Item 1), ...). Bindings render plain text, so the
+// label is split out here and bolded by the template. A label is short with no sentence
+// punctuation, which keeps a stray " - " in prose from matching. Any line can carry one
+// (Rage opens with "Requirements - ...").
+function descLines(desc) {
+  return String(desc || '').split('\n').map((line) => {
+    const k = line.indexOf(' - ');
+    const label = k > 0 ? line.slice(0, k) : '';
+    const isLabel = !!label && label.length <= 40 && !/[.;:]/.test(label);
+    return isLabel ? { label, rest: line.slice(k) } : { label: '', rest: line };
+  });
+}
 function cardStyle(selected) {
   return `cursor:pointer;padding:12px 14px;border-radius:var(--radius-md);background:var(--color-neutral-800);border:1px solid ${selected ? 'var(--color-accent)' : 'var(--color-neutral-700)'};box-shadow:${selected ? 'var(--shadow-md)' : 'none'};display:flex;flex-direction:column;gap:4px;min-width:180px;flex:1;max-width:220px`;
 }
@@ -3797,7 +3810,7 @@ class Component extends DCLogic {
 
     const hasSubclass = !!(selCls && selCls.subclasses);
     const subclassLabel = selCls ? selCls.subclassLabel : '';
-    const subclassOptions = hasSubclass ? selCls.subclasses.map(sc => ({ name: sc.name, desc: sc.desc, dotStyle: dotStyle(draft.subclassKey === sc.key), select: () => this.selectSubclass(sc.key) })) : [];
+    const subclassOptions = hasSubclass ? selCls.subclasses.map(sc => ({ name: sc.name, desc: sc.desc, descLines: descLines(sc.desc).map((l, i) => ({ ...l, lineStyle: i === 0 ? 'display:inline' : 'display:block' })), dotStyle: dotStyle(draft.subclassKey === sc.key), select: () => this.selectSubclass(sc.key) })) : [];
     const selSubclass = hasSubclass ? selCls.subclasses.find(sc => sc.key === draft.subclassKey) || null : null;
     const subclassNeedsSkillChoice = !!(selSubclass && selSubclass.skillChoice);
     const subclassSkillChoiceOptions = subclassNeedsSkillChoice ? selSubclass.skillChoice.map(k => ({
@@ -4125,17 +4138,6 @@ class Component extends DCLogic {
     }));
 
     const ACTION_ICONS = { '1': 'assets/action-single.png', '2': 'assets/action-double.png', '3': 'assets/action-triple.png', 'F': 'assets/action-free.png', 'R': 'assets/action-reaction.png' };
-    // Rules-text descriptions put each outcome/option on its own line as "Label - text"
-    // (Critical Success, Benefit, Stage 1, Lesser (Item 1), ...). Bindings render plain text, so the
-    // label is split out here and bolded by the template. A label is short with no sentence
-    // punctuation, which keeps a stray " - " in prose from matching. Any line can carry one
-    // (Rage opens with "Requirements - ...").
-    const descLines = (desc) => String(desc || '').split('\n').map((line) => {
-      const k = line.indexOf(' - ');
-      const label = k > 0 ? line.slice(0, k) : '';
-      const isLabel = !!label && label.length <= 40 && !/[.;:]/.test(label);
-      return isLabel ? { label, rest: line.slice(k) } : { label: '', rest: line };
-    });
     // Builds the collapsible "activated ability" rows shown under a specific magic weapon (e.g. the
     // Sparkblade's arc, the Wand of Heal's heal) or a backpack item (e.g. the Pyrite Rat's Transform).
     // `ownerName` namespaces the per-day usage key stored in char.itemActivationsUsed, which Full
@@ -4189,7 +4191,7 @@ class Component extends DCLogic {
       const isOpen = !!openCatsForChar[cd.key];
       return {
         key: cd.key, label: cd.label,
-        rows: actionRows.filter(a => a.category === cd.key).sort((a, b) => a.name.localeCompare(b.name)),
+        rows: actionRows.filter(a => a.category === cd.key).sort((a, b) => a.name.localeCompare(b.name)).map(a => ({ ...a, descLines: descLines(a.desc) })),
         isOpen,
         toggle: () => this.toggleActionCat(char.id, cd.key),
         caretClass: isOpen ? 'ph-caret-down' : 'ph-caret-right',
