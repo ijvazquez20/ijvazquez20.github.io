@@ -315,9 +315,9 @@
               <div class="card-kicker" style="margin-top:var(--space-3)">{{ subclassLabel }}</div>
               <div style="display:flex;flex-direction:column;gap:var(--space-3)">
                 <sc-for list="{{ subclassOptions }}" as="sc" hint-placeholder-count="2">
-                  <label class="radio" style="cursor:pointer" onClick="{{ sc.select }}">
-                    <span class="dot" style="{{ sc.dotStyle }}"></span>
-                    <span>{{ sc.name }} — {{ sc.desc }}</span>
+                  <label class="radio" style="cursor:pointer;align-items:flex-start" onClick="{{ sc.select }}">
+                    <span class="dot" style="margin-top:6px;{{ sc.dotStyle }}"></span>
+                    <span style="white-space:pre-line"><b>{{ sc.name }}</b> — {{ sc.desc }}</span>
                   </label>
                 </sc-for>
               </div>
@@ -327,6 +327,16 @@
                   <sc-for list="{{ subclassSkillChoiceOptions }}" as="opt" hint-placeholder-count="4">
                     <label class="radio" style="cursor:pointer" onClick="{{ opt.select }}">
                       <span class="dot" style="{{ opt.dotStyle }}"></span><span>{{ opt.label }}</span>
+                    </label>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ subclassNeedsChoice }}" hint-placeholder-val="{{ false }}">
+                <div class="card-kicker" style="margin-top:var(--space-3)">{{ subclassChoiceLabel }}</div>
+                <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+                  <sc-for list="{{ subclassChoiceOptions }}" as="opt" hint-placeholder-count="8">
+                    <label class="radio" style="cursor:pointer" onClick="{{ opt.select }}">
+                      <span class="dot" style="{{ opt.dotStyle }}"></span><span><b>{{ opt.name }}</b> — {{ opt.desc }}</span>
                     </label>
                   </sc-for>
                 </div>
@@ -940,7 +950,7 @@
                   <img src="{{ cf.icon }}" alt="" style="height:16px;width:auto;flex:none">
                 </sc-if>
               </div>
-              <div style="font-size:12px;color:var(--color-neutral-300)">{{ cf.desc }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line">{{ cf.desc }}</div>
             </div>
           </sc-for>
         </div>
@@ -2821,7 +2831,7 @@ class Component extends DCLogic {
         name: '', ancestryKey: null, heritageIndex: 0, ancestryFeat: null, ancestryFreeAbilities: [],
         backgroundKey: null, backgroundChoiceAbility: null, backgroundFreeAbility: null, assuranceSkillChoice: null,
         classKey: null, classKeyAbilityChoice: null, classFeat: null, skillFeat: null, classSkillChoice: null, thesisKey: null,
-        subclassKey: null, subclassSkillChoice: null, deityKey: null, sanctificationChoice: null, divineFontChoice: null, deitySkillChoice: null,
+        subclassKey: null, subclassSkillChoice: null, subclassChoice: null, deityKey: null, sanctificationChoice: null, divineFontChoice: null, deitySkillChoice: null,
         freeBoosts: [null, null, null, null], chosenSkills: [],
       },
     });
@@ -3109,14 +3119,15 @@ class Component extends DCLogic {
 
   selectClass = (key) => this.setState(s => {
     const cls = s.data.CLASSES.find(c => c.key === key);
-    return { draft: { ...s.draft, classKey: key, classKeyAbilityChoice: cls.keyAbility.length === 1 ? cls.keyAbility[0] : null, classFeat: null, classSkillChoice: null, thesisKey: null, subclassKey: null, subclassSkillChoice: null, deityKey: null, sanctificationChoice: null, divineFontChoice: null } };
+    return { draft: { ...s.draft, classKey: key, classKeyAbilityChoice: cls.keyAbility.length === 1 ? cls.keyAbility[0] : null, classFeat: null, classSkillChoice: null, thesisKey: null, subclassKey: null, subclassSkillChoice: null, subclassChoice: null, deityKey: null, sanctificationChoice: null, divineFontChoice: null } };
   });
   setClassKeyAbility = (val) => this.setState(s => ({ draft: { ...s.draft, classKeyAbilityChoice: val } }));
   setClassSkillChoice = (val) => this.setState(s => ({ draft: { ...s.draft, classSkillChoice: val } }));
   selectThesis = (key) => this.setState(s => ({ draft: { ...s.draft, thesisKey: key } }));
   selectClassFeat = (name) => this.setState(s => ({ draft: { ...s.draft, classFeat: name } }));
-  selectSubclass = (key) => this.setState(s => ({ draft: { ...s.draft, subclassKey: key, subclassSkillChoice: null } }));
+  selectSubclass = (key) => this.setState(s => ({ draft: { ...s.draft, subclassKey: key, subclassSkillChoice: null, subclassChoice: null } }));
   setSubclassSkillChoice = (val) => this.setState(s => ({ draft: { ...s.draft, subclassSkillChoice: val } }));
+  setSubclassChoice = (val) => this.setState(s => ({ draft: { ...s.draft, subclassChoice: val } }));
   selectDeity = (key) => this.setState(s => {
     const deity = s.data.DEITIES.find(d => d.key === key);
     const auto = deity && deity.sanctification !== 'either' ? deity.sanctification : null;
@@ -3207,6 +3218,7 @@ class Component extends DCLogic {
       ancestryKey: ancestry.key, heritageIndex: draft.heritageIndex, backgroundKey: background.key, classKey: cls.key,
       classKeyAbility: draft.classKeyAbilityChoice,
       subclassKey: draft.subclassKey || null,
+      subclassChoiceKey: (selSubclassFinal && selSubclassFinal.choices && draft.subclassChoice) || null,
       thesisKey: draft.thesisKey || null, staffSpells: [], staffCharges: 0, staffPreparesToday: 0,
       deityKey: deity ? deity.key : null,
       sanctification: draft.sanctificationChoice || null,
@@ -3792,6 +3804,12 @@ class Component extends DCLogic {
       label: data.SKILLS.find(sk => sk.key === k).name,
       dotStyle: dotStyle(draft.subclassSkillChoice === k), select: () => this.setSubclassSkillChoice(k),
     })) : [];
+    // A further pick some subclasses require (e.g. a barbarian's Animal Instinct animal or Dragon Instinct dragon type).
+    const subclassNeedsChoice = !!(selSubclass && selSubclass.choices);
+    const subclassChoiceLabel = subclassNeedsChoice ? selSubclass.choiceLabel : '';
+    const subclassChoiceOptions = subclassNeedsChoice ? selSubclass.choices.map(o => ({
+      name: o.name, desc: o.desc, dotStyle: dotStyle(draft.subclassChoice === o.key), select: () => this.setSubclassChoice(o.key),
+    })) : [];
     // Skills granted automatically by the class itself (e.g. a rogue is always trained in Stealth)
     // and by the chosen subclass/racket (e.g. a mastermind rogue is always trained in Society),
     // plus whichever skill the player chose from the racket's skill-choice list, if any.
@@ -3879,6 +3897,7 @@ class Component extends DCLogic {
       && (!classNeedsSkillChoice || !!draft.classSkillChoice)
       && (!hasSubclass || !!draft.subclassKey)
       && (!subclassNeedsSkillChoice || !!draft.subclassSkillChoice)
+      && (!subclassNeedsChoice || !!draft.subclassChoice)
       && (!hasThesis || !!draft.thesisKey)
       && (!needsDeity || (!!draft.deityKey && (!deityNeedsSanctChoice || !!draft.sanctificationChoice) && (!needsDivineFont || !!draft.divineFontChoice) && (!deityNeedsSkillChoice || !!draft.deitySkillChoice)))
       && (!needsPatron || !!draft.patronKey);
@@ -3941,7 +3960,7 @@ class Component extends DCLogic {
       selectedClassDCLine: selCls ? (selCls.proficiencies.classDC + ' in ' + selCls.name + ' class DC') : '',
       hasClassKeyChoice: selCls ? selCls.keyAbility.length > 1 : false, classKeyAbilityOptions, classFeats, skillFeats, hasLevel1ClassFeat, hasLevel1SkillFeat,
       hasSubclass, subclassLabel, subclassOptions,
-      subclassNeedsSkillChoice, subclassSkillChoiceOptions, classNeedsSkillChoice, classSkillChoiceOptions,
+      subclassNeedsSkillChoice, subclassSkillChoiceOptions, subclassNeedsChoice, subclassChoiceLabel, subclassChoiceOptions, classNeedsSkillChoice, classSkillChoiceOptions,
       hasThesis, thesisOptions, needsCurriculumChoice, curriculumCantripNames, curriculumSpellNames,
       needsDeity, deityValue: draft.deityKey || '', setDeity: (e) => this.selectDeity(e.target.value), deityOptions,
       hasSelectedDeity: !!selDeity, selectedDeityDesc: selDeity ? selDeity.desc : '',
@@ -3964,7 +3983,7 @@ class Component extends DCLogic {
       draftName: draft.name, setDraftName: this.setDraftName,
       reviewAncestry: selAnc ? selAnc.name : '', reviewHeritage: selAnc && selAnc.heritages[draft.heritageIndex] ? selAnc.heritages[draft.heritageIndex].name : '',
       reviewBackground: selBg ? selBg.name : '', reviewClass: selCls ? selCls.name : '', reviewFeats,
-      reviewSubclassSuffix: (hasSubclass && draft.subclassKey) ? (' (' + selCls.subclasses.find(sc => sc.key === draft.subclassKey).name + ')') : '',
+      reviewSubclassSuffix: selSubclass ? (' (' + selSubclass.name + ((subclassNeedsChoice && draft.subclassChoice) ? ': ' + selSubclass.choices.find(o => o.key === draft.subclassChoice).name : '') + ')') : '',
       hasReviewThesis: hasThesis && !!draft.thesisKey,
       reviewThesis: (hasThesis && draft.thesisKey) ? selCls.arcaneThesis.find(t => t.key === draft.thesisKey).name : '',
       hasReviewDeity: needsDeity && !!selDeity, reviewDeity: selDeity ? selDeity.name : '',
@@ -4009,6 +4028,7 @@ class Component extends DCLogic {
     };
     const cls = data.CLASSES.find(c => c.key === char.classKey);
     const charSubclass = (cls && cls.subclasses && char.subclassKey) ? cls.subclasses.find(sc => sc.key === char.subclassKey) : null;
+    const charSubclassChoice = (charSubclass && charSubclass.choices && char.subclassChoiceKey) ? charSubclass.choices.find(o => o.key === char.subclassChoiceKey) || null : null;
     const charThesis = (cls && cls.arcaneThesis && char.thesisKey) ? cls.arcaneThesis.find(t => t.key === char.thesisKey) : null;
     const attackLines = cls ? cls.proficiencies.attacks : [];
     const defenseLines = cls ? cls.proficiencies.defenses : [];
@@ -4981,7 +5001,14 @@ class Component extends DCLogic {
           .filter(cf => !(char.classKey === 'cleric' && charSubclass && cf.name === 'Doctrine'))
           .filter(cf => !(char.classKey === 'cleric' && hasDivineFont && cf.name === 'Divine Font'))
           .filter(cf => !(char.classKey === 'cleric' && charDeity && charDeity.anathema && cf.name === 'Anathema'))
+          .filter(cf => !(char.classKey === 'barbarian' && charSubclass && cf.name === 'Instinct'))
           .map(cf => ({ name: cf.name, desc: cf.desc, icon: ACTION_ICONS[cf.action] || '', hasIcon: !!ACTION_ICONS[cf.action] })),
+        ...((char.classKey === 'barbarian' && charSubclass) ? [{
+          name: charSubclassChoice ? `${charSubclass.name} (${charSubclassChoice.name})` : charSubclass.name,
+          // The chosen animal's attacks or dragon type go right after the intro line, ahead of the abilities that reference them.
+          desc: charSubclassChoice ? charSubclass.desc.replace('\n', `\n${charSubclassChoice.name} - ${charSubclassChoice.desc}\n`) : charSubclass.desc,
+          icon: '', hasIcon: false,
+        }] : []),
         ...((char.classKey === 'rogue' && charSubclass) ? [{ name: `Racket (${charSubclass.name})`, desc: charSubclass.desc, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'wizard' && charSubclass) ? [{ name: `Arcane School (${charSubclass.name})`, desc: charSubclass.desc, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'wizard' && charThesis) ? [{ name: `Arcane Thesis (${charThesis.name})`, desc: charThesis.desc, icon: '', hasIcon: false }] : []),
