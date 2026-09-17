@@ -1931,23 +1931,93 @@
 
   <sc-if value="{{ showFormulaAddModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeFormulaAddModal }}">
-      <div class="dialog" onClick="{{ stopClickPropagation }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
         <div class="dialog-title">Add Formulas</div>
-        <div class="dialog-body" style="max-height:55vh;overflow-y:auto;padding-right:2px">
-          <sc-for list="{{ formulaAddGroups }}" as="rg" hint-placeholder-count="3">
-            <div style="margin-bottom:var(--space-3)">
-              <div class="card-kicker" style="margin-bottom:4px">{{ rg.label }}</div>
-              <div style="display:flex;gap:var(--space-3)">
-                <select class="input" value="{{ rg.pick }}" onChange="{{ rg.setPick }}" style="flex:1">
-                  <option value="">Choose formula to add…</option>
-                  <sc-for list="{{ rg.options }}" as="o" hint-placeholder-count="6">
-                    <option value="{{ o.name }}">{{ o.label }}</option>
-                  </sc-for>
-                </select>
-                <button class="btn btn-secondary" onClick="{{ rg.add }}"><i class="ph ph-plus"></i>&nbsp;Add</button>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <sc-if value="{{ hasNoFormulaAddTabs }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;color:var(--color-neutral-400)">No formulas are available. Alchemical items come from Player Core 2 — enable it under Source Books.</div>
+            </sc-if>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ formulaAddTabs }}" as="tb" hint-placeholder-count="5">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
+              </sc-for>
+            </div>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search formulas…" value="{{ formulaAddSearch }}" onChange="{{ setFormulaAddSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:60px;flex:none;text-align:center">Level</span>
+                <span style="width:44px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoFormulaAddRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No formulas match.</div>
+                </sc-if>
+                <sc-for list="{{ formulaAddRows }}" as="fr" hint-placeholder-count="10">
+                  <button style="{{ fr.rowStyle }}" data-formula-add-row="{{ fr.name }}" onClick="{{ fr.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ fr.name }}</span>
+                    <span style="width:60px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ fr.level }}</span>
+                    <span style="width:44px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ fr.known }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Already in formula book" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
               </div>
             </div>
-          </sc-for>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ formulaAddDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ formulaAddDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ formulaAddDetail.facts }}" as="ft" hint-placeholder-count="3">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5">{{ formulaAddDetail.desc }}</div>
+                <sc-if value="{{ formulaAddDetail.hasVersions }}" hint-placeholder-val="{{ false }}">
+                  <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
+                    <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:6px">Versions</div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:4px 8px;font:500 10px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-500)">
+                      <span style="flex:1;min-width:0">Version</span>
+                      <span style="width:48px;flex:none;text-align:center">Level</span>
+                      <sc-if value="{{ formulaAddDetail.hasDamageCol }}" hint-placeholder-val="{{ false }}">
+                        <span style="width:72px;flex:none;text-align:center">Damage</span>
+                      </sc-if>
+                      <sc-if value="{{ formulaAddDetail.hasSplashCol }}" hint-placeholder-val="{{ false }}">
+                        <span style="width:52px;flex:none;text-align:center">Splash</span>
+                      </sc-if>
+                    </div>
+                    <sc-for list="{{ formulaAddDetail.versions }}" as="vr" hint-placeholder-count="3">
+                      <div style="{{ vr.rowStyle }}" title="{{ vr.title }}">
+                        <span style="flex:1;min-width:0">{{ vr.name }}</span>
+                        <span style="width:48px;flex:none;text-align:center">{{ vr.level }}</span>
+                        <sc-if value="{{ formulaAddDetail.hasDamageCol }}" hint-placeholder-val="{{ false }}">
+                          <span style="width:72px;flex:none;text-align:center">{{ vr.damage }}</span>
+                        </sc-if>
+                        <sc-if value="{{ formulaAddDetail.hasSplashCol }}" hint-placeholder-val="{{ false }}">
+                          <span style="width:52px;flex:none;text-align:center">{{ vr.splash }}</span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ formulaAddDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ formulaAddDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ formulaAddDetail.addBtnClass }}" style="{{ formulaAddDetail.addBtnStyle }}" onClick="{{ toggleSelectedFormula }}"><i class="ph {{ formulaAddDetail.addIconClass }}"></i>&nbsp;{{ formulaAddDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ formulaAddDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a formula to see its details.</div>
+            </sc-if>
+          </div>
+
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" onClick="{{ closeFormulaAddModal }}">Done</button>
@@ -2446,7 +2516,7 @@ function optionsForFeatGrant(spec, data, ancestry, cls, ctx, notTaken) {
 class Component extends DCLogic {
   state = {
     data: null, view: 'roster', characters: [], activeId: null, openTabIds: [],
-    bookFilters: {}, showBookFilter: false, showSpellAddModal: false, showFormulaAddModal: false, formulaPicksByCategory: {}, showXPModal: false, showLanguageModal: false, languagePick: '', showDeityModal: false, showPatronModal: false, showRuneModal: false, runeModalWeaponIndex: null, showPersonalDetailsModal: false, showPortraitViewModal: false, sheetTabByChar: {},
+    bookFilters: {}, showBookFilter: false, showSpellAddModal: false, showFormulaAddModal: false, showXPModal: false, showLanguageModal: false, languagePick: '', showDeityModal: false, showPatronModal: false, showRuneModal: false, runeModalWeaponIndex: null, showPersonalDetailsModal: false, showPortraitViewModal: false, sheetTabByChar: {},
     showGrantXPModal: false, grantXPAmount: '',
     showFullRestConfirm: false,
     showPortraitModal: false, portraitDraftSrc: null, portraitZoom: 1, portraitRotate: 0, portraitOffsetX: 0, portraitOffsetY: 0,
@@ -2466,6 +2536,8 @@ class Component extends DCLogic {
     // Add Spells browser: which rank tab is showing, the spell whose detail is on the right, and
     // the name filter. All transient — reset each time the modal opens.
     spellAddTab: 'cantrip', spellAddSelected: null, spellAddSearch: '',
+    // Add Formulas browser: same shape as the spells one, with category tabs instead of ranks.
+    formulaAddTab: 'bomb', formulaAddSelected: null, formulaAddSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -2488,9 +2560,9 @@ class Component extends DCLogic {
     // never accumulates listeners; both are no-ops whenever a drag isn't in progress.
     window.addEventListener('mousemove', this.handlePortraitDragMove);
     window.addEventListener('mouseup', this.handlePortraitDragEnd);
-    // Same lifetime-long approach for arrow-key browsing in the Add Spells list; a no-op unless
-    // that modal is open with a spell selected.
-    window.addEventListener('keydown', this.handleSpellAddKeydown);
+    // Same lifetime-long approach for arrow-key browsing in the Add Spells and Add Formulas lists;
+    // a no-op unless one of those modals is open with an entry selected.
+    window.addEventListener('keydown', this.handleBrowseKeydown);
 
     // Character data (and the Firebase rules guarding it) are gated behind sign-in, so nothing
     // touches the database until we know who's asking. onAuthStateChanged fires once immediately
@@ -2828,30 +2900,35 @@ class Component extends DCLogic {
   // Switching rank tabs clears the selection, since the selected spell is no longer in the list.
   setSpellAddTab = (key) => this.setState({ spellAddTab: key, spellAddSelected: null });
   selectSpellToAdd = (name) => this.setState({ spellAddSelected: name });
-  // Up/Down steps the selection through the list exactly as it's displayed (current tab and search
-  // filter), stopping at either end rather than wrapping. `_spellAddOrder` is refreshed on every
-  // render, so it always matches what's on screen.
-  handleSpellAddKeydown = (e) => {
+  // Up/Down steps the selection through an add-browser's list (Add Spells or Add Formulas) exactly as
+  // it's displayed (current tab and search filter), stopping at either end rather than wrapping.
+  // Each browser's `_…Order` is refreshed on every render, so it always matches what's on screen.
+  handleBrowseKeydown = (e) => {
     if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
     const s = this.state;
-    if (!s.showSpellAddModal || !s.spellAddSelected) return;
+    const browser = s.showSpellAddModal
+      ? { selected: s.spellAddSelected, order: this._spellAddOrder, attr: 'data-spell-add-row', key: 'spellAddSelected' }
+      : s.showFormulaAddModal
+        ? { selected: s.formulaAddSelected, order: this._formulaAddOrder, attr: 'data-formula-add-row', key: 'formulaAddSelected' }
+        : null;
+    if (!browser || !browser.selected) return;
     const t = e.target;
     if (t && (t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    const order = this._spellAddOrder || [];
+    const order = browser.order || [];
     if (!order.length) return;
     // Own the key while browsing, so the list container and the page don't also scroll.
     e.preventDefault();
-    const idx = order.indexOf(s.spellAddSelected);
+    const idx = order.indexOf(browser.selected);
     // A selection filtered out by the search box re-enters the list at the top.
     const next = idx < 0 ? 0 : Math.max(0, Math.min(order.length - 1, idx + (e.key === 'ArrowDown' ? 1 : -1)));
     if (idx === next) return;
     const name = order[next];
     // Focus follows the selection only if it was already on a row, so arrowing from the search box
     // doesn't pull focus away from typing.
-    const focusWasOnRow = !!(document.activeElement && document.activeElement.hasAttribute('data-spell-add-row'));
-    this.setState({ spellAddSelected: name }, () => {
-      const row = [...document.querySelectorAll('[data-spell-add-row]')].find(el => el.getAttribute('data-spell-add-row') === name);
+    const focusWasOnRow = !!(document.activeElement && document.activeElement.hasAttribute(browser.attr));
+    this.setState({ [browser.key]: name }, () => {
+      const row = [...document.querySelectorAll(`[${browser.attr}]`)].find(el => el.getAttribute(browser.attr) === name);
       if (!row) return;
       row.scrollIntoView({ block: 'nearest' });
       if (focusWasOnRow) row.focus({ preventScroll: true });
@@ -2880,7 +2957,7 @@ class Component extends DCLogic {
       }) };
     });
   };
-  openFormulaAddModal = () => this.setState({ showFormulaAddModal: true });
+  openFormulaAddModal = () => this.setState({ showFormulaAddModal: true, formulaAddTab: 'bomb', formulaAddSelected: null, formulaAddSearch: '' });
   closeFormulaAddModal = () => this.setState({ showFormulaAddModal: false });
   openXPModal = () => this.setState({ showXPModal: true });
   closeXPModal = () => this.setState({ showXPModal: false });
@@ -3347,12 +3424,25 @@ class Component extends DCLogic {
     return { ...c, fontUsed: Math.max(0, Math.min(max, fontUsed)) };
   });
 
-  setFormulaPickForCategory = (key, val) => this.setState(s => ({ formulaPicksByCategory: { ...s.formulaPicksByCategory, [key]: val } }));
-  addFormulaFromPickForCategory = (key) => {
-    const name = (this.state.formulaPicksByCategory || {})[key]; if (!name) return;
+  // Add Formulas browser. Switching tabs clears the selection, since it's no longer in the list.
+  setFormulaAddTab = (key) => this.setState({ formulaAddTab: key, formulaAddSelected: null });
+  selectFormulaToAdd = (name) => this.setState({ formulaAddSelected: name });
+  setFormulaAddSearchField = (e) => this.setState({ formulaAddSearch: e.target.value });
+  // Adds or removes the formula shown in the detail pane. The stored entry keeps the same shape the
+  // old per-category dropdowns wrote. Removal drops only the first match, like the spells browser.
+  toggleSelectedFormula = () => {
+    const name = this.state.formulaAddSelected; if (!name) return;
     const def = this.state.data.ALCHEMICAL_ITEMS.find(it => it.name === name); if (!def) return;
-    this.updateActiveChar(c => c.formulaBook.some(f => f.name === def.name) ? c : ({ ...c, formulaBook: [...c.formulaBook, { name: def.name, category: def.category, level: def.level, damage: def.damage || '', desc: def.desc }] }));
-    this.setState(s => ({ formulaPicksByCategory: { ...s.formulaPicksByCategory, [key]: '' } }));
+    this.updateActiveChar(c => {
+      if (!c.formulaBook.some(f => f.name === def.name)) {
+        return { ...c, formulaBook: [...c.formulaBook, { name: def.name, category: def.category, level: def.level, damage: def.damage || '', desc: def.desc }] };
+      }
+      let dropped = false;
+      return { ...c, formulaBook: c.formulaBook.filter(f => {
+        if (dropped || f.name !== def.name) return true;
+        dropped = true; return false;
+      }) };
+    });
   };
   removeFormula = (idx) => this.updateActiveChar(c => ({ ...c, formulaBook: c.formulaBook.filter((_, i) => i !== idx) }));
   addToAlchemyBatch = (idx) => this.updateActiveChar(c => {
@@ -4503,7 +4593,7 @@ class Component extends DCLogic {
           rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);scroll-margin-top:40px;scroll-margin-bottom:4px;background:${selected ? 'var(--color-neutral-700)' : 'transparent'}`,
         };
       });
-    // Remembered for handleSpellAddKeydown, which steps through the rows in exactly this order.
+    // Remembered for handleBrowseKeydown, which steps through the rows in exactly this order.
     this._spellAddOrder = spellAddRows.map(r => r.name);
     const spellAddDef = s.spellAddSelected ? data.SPELLS.find(sp => sp.name === s.spellAddSelected) : null;
     const spellAddDetailRangeMatch = spellAddDef ? /^(\d)-(\d)$/.exec(spellAddDef.action || '') : null;
@@ -4670,16 +4760,68 @@ class Component extends DCLogic {
     const preparedAlchemyCount = char.preparedAlchemy.length;
     const preparedAlchemyUsedCount = char.preparedAlchemy.filter(it => it.used).length;
     const preparedAlchemyRemaining = Math.max(0, preparedAlchemyCount - preparedAlchemyUsedCount);
-    const formulaLibAll = data.ALCHEMICAL_ITEMS.filter(it => bf[it.book] && it.level <= char.level && !char.formulaBook.some(f => f.name === it.name));
-    const formulaAddGroups = FORMULA_CATEGORY_DEFS.map(def => {
-      const options = formulaLibAll.filter(it => it.category === def.key).map(it => ({ name: it.name, label: it.name + ' (Level ' + it.level + ')' })).sort((a, b) => a.name.localeCompare(b.name));
-      return {
-        key: def.key, label: def.label, options,
-        pick: (s.formulaPicksByCategory || {})[def.key] || '',
-        setPick: (e) => this.setFormulaPickForCategory(def.key, e.target.value),
-        add: () => this.addFormulaFromPickForCategory(def.key),
-      };
-    }).filter(g => g.options.length > 0);
+    // ---- Add Formulas browser (modal) -----------------------------------------------------
+    // Mirrors the Add Spells browser: category tabs and a searchable list on the left, detail on the
+    // right. Candidates are the formulas from enabled books at or below the character's level, as
+    // before; formulas already in the book stay listed with a check so they can be removed here too.
+    const formulaLib = data.ALCHEMICAL_ITEMS.filter(it => bf[it.book] && it.level <= char.level);
+    const formulaAddTabDefs = FORMULA_CATEGORY_DEFS.filter(d => formulaLib.some(it => it.category === d.key));
+    const formulaAddTab = formulaAddTabDefs.some(d => d.key === s.formulaAddTab) ? s.formulaAddTab : (formulaAddTabDefs[0] || {}).key;
+    const formulaAddTabs = formulaAddTabDefs.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === formulaAddTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setFormulaAddTab(d.key),
+    }));
+    const knownFormulaNames = new Set(char.formulaBook.map(f => f.name));
+    const formulaAddQuery = (s.formulaAddSearch || '').trim().toLowerCase();
+    const formulaAddRows = formulaLib
+      .filter(it => it.category === formulaAddTab && (!formulaAddQuery || it.name.toLowerCase().includes(formulaAddQuery)))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(it => ({
+        name: it.name, level: it.level, known: knownFormulaNames.has(it.name),
+        select: () => this.selectFormulaToAdd(it.name),
+        // Same row styling as the spells browser, including the scroll margin for the sticky header.
+        rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);scroll-margin-top:40px;scroll-margin-bottom:4px;background:${s.formulaAddSelected === it.name ? 'var(--color-neutral-700)' : 'transparent'}`,
+      }));
+    // Remembered for handleBrowseKeydown, which steps through the rows in exactly this order.
+    this._formulaAddOrder = formulaAddRows.map(r => r.name);
+    const formulaAddDef = s.formulaAddSelected ? data.ALCHEMICAL_ITEMS.find(it => it.name === s.formulaAddSelected) : null;
+    const formulaAddTiers = (formulaAddDef && formulaAddDef.tiers) || [];
+    // The version in effect is the highest one the character's level has reached, the same rule the
+    // Formula Book card uses (formulaExtra above).
+    const formulaAddCurrent = formulaAddTiers.filter(t => t.level <= char.level).slice(-1)[0] || null;
+    const formulaAddKnown = !!(formulaAddDef && knownFormulaNames.has(formulaAddDef.name));
+    const formulaAddDamage = formulaAddDef ? ((formulaAddCurrent && formulaAddCurrent.damage) || formulaAddDef.damage || '') : '';
+    const formulaAddDetail = {
+      hasSelection: !!formulaAddDef, hasNoSelection: !formulaAddDef,
+      name: formulaAddDef ? formulaAddDef.name : '',
+      desc: formulaAddDef ? formulaAddDef.desc : '',
+      facts: formulaAddDef ? [
+        { label: 'Category', value: (FORMULA_CATEGORY_DEFS.find(d => d.key === formulaAddDef.category) || {}).label || formulaAddDef.category },
+        { label: 'Level', value: String(formulaAddDef.level) },
+        { label: 'Version', value: formulaAddCurrent ? formulaAddCurrent.name : '' },
+        { label: 'Damage', value: formulaAddDamage },
+        { label: 'Splash', value: (formulaAddCurrent && formulaAddCurrent.splash != null) ? String(formulaAddCurrent.splash) : '' },
+      ].filter(f => f.value) : [],
+      // A single version has nothing to compare, so the table only appears when there are several.
+      hasVersions: formulaAddTiers.length > 1,
+      hasDamageCol: formulaAddTiers.some(t => t.damage),
+      hasSplashCol: formulaAddTiers.some(t => t.splash != null),
+      versions: formulaAddTiers.map(t => {
+        const isCurrent = t === formulaAddCurrent, reached = t.level <= char.level;
+        return {
+          name: t.name, level: t.level, damage: t.damage || '—', splash: t.splash != null ? String(t.splash) : '—',
+          title: isCurrent ? 'Your current version' : reached ? '' : `Available at level ${t.level}`,
+          rowStyle: `display:flex;align-items:center;gap:8px;padding:4px 8px;font-size:12px;border-radius:var(--radius-sm);${isCurrent ? 'background:var(--color-neutral-700);color:var(--color-text);font-weight:600' : reached ? 'color:var(--color-neutral-300)' : 'color:var(--color-neutral-500)'}`,
+        };
+      }),
+      bookName: formulaAddDef ? ((data.BOOKS.find(b => b.key === formulaAddDef.book) || {}).name || '') : '',
+      known: formulaAddKnown,
+      addLabel: formulaAddKnown ? 'Remove From Formula Book' : 'Add Formula',
+      addIconClass: formulaAddKnown ? 'ph-trash' : 'ph-plus',
+      addBtnClass: formulaAddKnown ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (formulaAddKnown ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
+    };
 
     const CURRENCY_DEFS = [
       { key: 'pp', label: 'Platinum', abbr: 'PP', bg: 'oklch(88% 0.02 250)', color: '#2a2a2e' },
@@ -4862,7 +5004,11 @@ class Component extends DCLogic {
       isAlchemist, vialsMax, vialsUsed, vialsRemaining: Math.max(0, vialsMax - vialsUsed), vialPips, advancedAlchemyCapacity,
       formulaBookGroups, preparedAlchemyGroups, preparedAlchemyCount, preparedAlchemyUsedCount, preparedAlchemyRemaining,
       hasNoPreparedAlchemy: preparedAlchemyRowsFull.length === 0,
-      showFormulaAddModal: s.showFormulaAddModal, openFormulaAddModal: this.openFormulaAddModal, closeFormulaAddModal: this.closeFormulaAddModal, formulaAddGroups,
+      showFormulaAddModal: s.showFormulaAddModal, openFormulaAddModal: this.openFormulaAddModal, closeFormulaAddModal: this.closeFormulaAddModal,
+      formulaAddTabs, formulaAddRows, formulaAddDetail,
+      hasNoFormulaAddRows: formulaAddRows.length === 0 && formulaAddTabDefs.length > 0, hasNoFormulaAddTabs: formulaAddTabDefs.length === 0,
+      formulaAddSearch: s.formulaAddSearch || '', setFormulaAddSearch: this.setFormulaAddSearchField,
+      toggleSelectedFormula: this.toggleSelectedFormula,
       showXPModal: s.showXPModal, openXPModal: this.openXPModal, closeXPModal: this.closeXPModal,
       inventoryRows, currencyRows, gearLibOptions,
       gearSearchText: s.gearSearchText, gearSearchOpen: s.gearSearchOpen, setGearSearchField: this.setGearSearchField,
