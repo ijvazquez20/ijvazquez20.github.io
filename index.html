@@ -1063,7 +1063,7 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ av.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ av.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                         </sc-if>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ av.desc }}</div>
+                      <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ av.desc }}</div>
                       <sc-if value="{{ av.meta }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}<sc-if value="{{ av.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ av.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></sc-if></div>
                       </sc-if>
@@ -1117,7 +1117,7 @@
                               </span>
                             </sc-if>
                           </div>
-                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ sp.desc }}</div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ sp.desc }}</div>
                           <sc-if value="{{ sp.meta }}" hint-placeholder-val="{{ false }}">
                             <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ sp.meta }}<sc-if value="{{ sp.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ sp.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ sp.heightenLabel }}</span></sc-if></div>
                           </sc-if>
@@ -1185,7 +1185,7 @@
                         </span>
                       </sc-if>
                     </div>
-                    <div style="font-size:12px;color:var(--color-neutral-300);padding-top:4px">{{ ss.desc }}</div>
+                    <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:4px">{{ ss.desc }}</div>
                     <sc-if value="{{ ss.meta }}" hint-placeholder-val="{{ false }}">
                       <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ ss.meta }}</div>
                     </sc-if>
@@ -1250,7 +1250,7 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                         </sc-if>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ pa.desc }}</div>
+                      <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ pa.desc }}</div>
                       <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span><sc-if value="{{ pa.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ pa.splashMeta }}</sc-if></div>
                       </sc-if>
@@ -1289,7 +1289,7 @@
                               <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ fb.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ fb.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                             </sc-if>
                           </div>
-                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ fb.desc }}</div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ fb.desc }}</div>
                           <sc-if value="{{ fb.hasTier }}" hint-placeholder-val="{{ false }}">
                             <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ fb.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ fb.tierMeta }}</span><sc-if value="{{ fb.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ fb.splashMeta }}</sc-if></div>
                           </sc-if>
@@ -1903,7 +1903,7 @@
                     <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
                   </sc-for>
                 </div>
-                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5">{{ spellAddDetail.desc }}</div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5;white-space:pre-line">{{ spellAddDetail.desc }}</div>
                 <sc-if value="{{ spellAddDetail.hasHeightened }}" hint-placeholder-val="{{ false }}">
                   <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
                     <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:2px">Heightened</div>
@@ -1979,7 +1979,7 @@
                     <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
                   </sc-for>
                 </div>
-                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5">{{ formulaAddDetail.desc }}</div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5;white-space:pre-line">{{ formulaAddDetail.desc }}</div>
                 <sc-if value="{{ formulaAddDetail.hasVersions }}" hint-placeholder-val="{{ false }}">
                   <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
                     <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:6px">Versions</div>
