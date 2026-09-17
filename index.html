@@ -906,7 +906,7 @@
                 <sc-if value="{{ ft.hasActionIcon }}" hint-placeholder-val="{{ false }}">
                   <img src="{{ ft.actionIcon }}" alt="Action" style="display:inline-block;height:16px;width:auto;vertical-align:middle;margin-left:4px">
                 </sc-if>
-                <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)">{{ ft.desc }}</div>
+                <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ ft.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                 <sc-if value="{{ ft.grantedByLabel }}" hint-placeholder-val="{{ false }}">
                   <div style="font-size:11px;color:var(--color-accent-300);margin-top:2px">{{ ft.grantedByLabel }}</div>
                 </sc-if>
@@ -950,7 +950,7 @@
                   <img src="{{ cf.icon }}" alt="" style="height:16px;width:auto;flex:none">
                 </sc-if>
               </div>
-              <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line">{{ cf.desc }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-300)"><sc-for list="{{ cf.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
             </div>
           </sc-for>
         </div>
@@ -4125,6 +4125,17 @@ class Component extends DCLogic {
     }));
 
     const ACTION_ICONS = { '1': 'assets/action-single.png', '2': 'assets/action-double.png', '3': 'assets/action-triple.png', 'F': 'assets/action-free.png', 'R': 'assets/action-reaction.png' };
+    // Rules-text descriptions put each outcome/option on its own line as "Label - text"
+    // (Critical Success, Benefit, Stage 1, Lesser (Item 1), ...). Bindings render plain text, so the
+    // label is split out here and bolded by the template. A label is short with no sentence
+    // punctuation, which keeps a stray " - " in prose from matching. Any line can carry one
+    // (Rage opens with "Requirements - ...").
+    const descLines = (desc) => String(desc || '').split('\n').map((line) => {
+      const k = line.indexOf(' - ');
+      const label = k > 0 ? line.slice(0, k) : '';
+      const isLabel = !!label && label.length <= 40 && !/[.;:]/.test(label);
+      return isLabel ? { label, rest: line.slice(k) } : { label: '', rest: line };
+    });
     // Builds the collapsible "activated ability" rows shown under a specific magic weapon (e.g. the
     // Sparkblade's arc, the Wand of Heal's heal) or a backpack item (e.g. the Pyrite Rat's Transform).
     // `ownerName` namespaces the per-day usage key stored in char.itemActivationsUsed, which Full
@@ -4308,7 +4319,7 @@ class Component extends DCLogic {
       const def = findFeatDefByName(data, f.name);
       const cost = def && def.action;
       return {
-        name: f.name, desc: f.desc, source: f.source, grantedByLabel: f.grantedBy ? ('Bonus from ' + f.grantedBy) : '',
+        name: f.name, desc: f.desc, descLines: descLines(f.desc), source: f.source, grantedByLabel: f.grantedBy ? ('Bonus from ' + f.grantedBy) : '',
         actionIcon: ACTION_ICONS[cost] || '', hasActionIcon: !!ACTION_ICONS[cost],
         remove: () => this.removeFeat(i),
       };
@@ -4415,16 +4426,6 @@ class Component extends DCLogic {
     // folded into the same meta line, after Range/Target/Area, rather than shown next to the name.
     // `effRank`, when above the spell's base rank, returns a separate "Heightened (+N)" label
     // (kept apart from the plain-text meta string so it can be styled differently).
-    // Rules-text descriptions put each outcome/option on its own line as "Label - text"
-    // (Critical Success, Benefit, Stage 1, Lesser (Item 1), ...). Bindings render plain text, so the
-    // label is split out here and bolded by the template. The first line is always prose, and a
-    // label is short with no sentence punctuation, which keeps a stray " - " in prose from matching.
-    const descLines = (desc) => String(desc || '').split('\n').map((line, i) => {
-      const k = line.indexOf(' - ');
-      const label = k > 0 ? line.slice(0, k) : '';
-      const isLabel = i > 0 && !!label && label.length <= 40 && !/[.;:]/.test(label);
-      return isLabel ? { label, rest: line.slice(k) } : { label: '', rest: line };
-    });
     const spellExtra = (name, effRank) => {
       const def = data.SPELLS.find(x => x.name === name);
       // `desc` is looked up live (rather than read from the character's stored spellsKnown entry) so
@@ -5028,7 +5029,7 @@ class Component extends DCLogic {
         ...((char.classKey === 'cleric' && hasDivineFont) ? [{ name: `Divine Font (${fontLabel})`, desc: fontLabel === 'Healing Font' ? 'Gain extra Heal spells tied to your deity to prepare and cast each day.' : 'Gain extra Harm spells tied to your deity to prepare and cast each day.', icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charDeity && charDeity.anathema) ? [{ name: 'Anathema', desc: `Acting against ${charDeity.name}'s edicts can cost you your divine powers. Anathema: ${charDeity.anathema}.`, icon: '', hasIcon: false }] : []),
         ...((char.classKey === 'cleric' && charSubclass && charSubclass.key === 'cloistered' && char.level >= 3) ? [{ name: 'Second Doctrine', desc: 'Your proficiency rank for Fortitude saves increases to expert.', icon: '', hasIcon: false }] : []),
-      ].sort((a, b) => a.name.localeCompare(b.name)) : [],
+      ].sort((a, b) => a.name.localeCompare(b.name)).map(cf => ({ ...cf, descLines: descLines(cf.desc) })) : [],
       showSpellSlots: !!(cls && cls.spellcasting), spellbookGroups, availableSpellGroups, slotRows,
       hasStaffNexus, staffCharges, staffPreparesToday, staffPreparesMax, staffPrepareAtMax,
       staffPrepareRankVal: s.staffPrepareRank || '', setStaffPrepareRank: this.setStaffPrepareRank, prepareStaff: this.prepareStaff, undoStaffPrepare: this.undoStaffPrepare, staffPrepareRankOptions,
