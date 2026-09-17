@@ -1073,7 +1073,7 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ av.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ av.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                         </sc-if>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ av.desc }}</div>
+                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ av.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                       <sc-if value="{{ av.meta }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}<sc-if value="{{ av.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ av.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></sc-if></div>
                       </sc-if>
@@ -1127,7 +1127,7 @@
                               </span>
                             </sc-if>
                           </div>
-                          <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ sp.desc }}</div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ sp.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                           <sc-if value="{{ sp.meta }}" hint-placeholder-val="{{ false }}">
                             <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ sp.meta }}<sc-if value="{{ sp.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ sp.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ sp.heightenLabel }}</span></sc-if></div>
                           </sc-if>
@@ -1195,7 +1195,7 @@
                         </span>
                       </sc-if>
                     </div>
-                    <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:4px">{{ ss.desc }}</div>
+                    <div style="font-size:12px;color:var(--color-neutral-300);padding-top:4px"><sc-for list="{{ ss.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                     <sc-if value="{{ ss.meta }}" hint-placeholder-val="{{ false }}">
                       <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ ss.meta }}</div>
                     </sc-if>
@@ -1260,7 +1260,7 @@
                           <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                         </sc-if>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ pa.desc }}</div>
+                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ pa.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                       <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
                         <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span><sc-if value="{{ pa.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ pa.splashMeta }}</sc-if></div>
                       </sc-if>
@@ -1299,7 +1299,7 @@
                               <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ fb.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ fb.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
                             </sc-if>
                           </div>
-                          <div style="font-size:12px;color:var(--color-neutral-300);white-space:pre-line;padding-top:var(--space-2)">{{ fb.desc }}</div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ fb.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                           <sc-if value="{{ fb.hasTier }}" hint-placeholder-val="{{ false }}">
                             <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ fb.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ fb.tierMeta }}</span><sc-if value="{{ fb.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ fb.splashMeta }}</sc-if></div>
                           </sc-if>
@@ -1913,7 +1913,7 @@
                     <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
                   </sc-for>
                 </div>
-                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5;white-space:pre-line">{{ spellAddDetail.desc }}</div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ spellAddDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                 <sc-if value="{{ spellAddDetail.hasHeightened }}" hint-placeholder-val="{{ false }}">
                   <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
                     <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:2px">Heightened</div>
@@ -1989,7 +1989,7 @@
                     <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
                   </sc-for>
                 </div>
-                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5;white-space:pre-line">{{ formulaAddDetail.desc }}</div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ formulaAddDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
                 <sc-if value="{{ formulaAddDetail.hasVersions }}" hint-placeholder-val="{{ false }}">
                   <div style="border-top:1px solid var(--color-neutral-800);padding-top:var(--space-2)">
                     <div style="font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-accent-300);margin-bottom:6px">Versions</div>
@@ -4415,6 +4415,16 @@ class Component extends DCLogic {
     // folded into the same meta line, after Range/Target/Area, rather than shown next to the name.
     // `effRank`, when above the spell's base rank, returns a separate "Heightened (+N)" label
     // (kept apart from the plain-text meta string so it can be styled differently).
+    // Rules-text descriptions put each outcome/option on its own line as "Label - text"
+    // (Critical Success, Benefit, Stage 1, Lesser (Item 1), ...). Bindings render plain text, so the
+    // label is split out here and bolded by the template. The first line is always prose, and a
+    // label is short with no sentence punctuation, which keeps a stray " - " in prose from matching.
+    const descLines = (desc) => String(desc || '').split('\n').map((line, i) => {
+      const k = line.indexOf(' - ');
+      const label = k > 0 ? line.slice(0, k) : '';
+      const isLabel = i > 0 && !!label && label.length <= 40 && !/[.;:]/.test(label);
+      return isLabel ? { label, rest: line.slice(k) } : { label: '', rest: line };
+    });
     const spellExtra = (name, effRank) => {
       const def = data.SPELLS.find(x => x.name === name);
       // `desc` is looked up live (rather than read from the character's stored spellsKnown entry) so
@@ -4465,7 +4475,7 @@ class Component extends DCLogic {
     const spellbookRowsFull = char.spellsKnown.map((sp, i) => {
       const extra = spellExtra(sp.name, effectiveRankFor(sp));
       return {
-      name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
+      name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, descLines: descLines(extra.desc != null ? extra.desc : sp.desc), meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, level: sp.level, cantrip: !!sp.cantrip, focus: !!sp.focus, isFontEntry: isFontEntry(sp),
       levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
       tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
       isHex: sp.tradition === 'Witch' && !!sp.focus,
@@ -4511,7 +4521,7 @@ class Component extends DCLogic {
         const baseSpDamage = extra.heightenedDamage || sp.damage || '';
         const spDamage = (sp.name === 'Heal' && charFeatNames.has('Healing Hands')) ? baseSpDamage.replace(/d8/g, 'd10') : baseSpDamage;
         return {
-        name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
+        name: sp.name, desc: extra.desc != null ? extra.desc : sp.desc, descLines: descLines(extra.desc != null ? extra.desc : sp.desc), meta: extra.meta, isHeightened: extra.isHeightened, heightenLabel: extra.heightenLabel, heightenNeedsDot: extra.heightenNeedsDot, metaEmptyHeightened: extra.metaEmptyHeightened, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon, cantrip: !!sp.cantrip, focus: !!sp.focus, level: sp.level, isFontEntry: isFontEntry(sp),
         levelLabel: sp.focus ? 'Focus' : isFontEntry(sp) ? 'Font' : sp.cantrip ? 'Cantrip' : ('Level ' + sp.level),
         tagClass: sp.focus ? 'tag tag-accent-2' : isFontEntry(sp) ? 'tag tag-accent-2' : sp.cantrip ? 'tag tag-neutral' : 'tag tag-accent',
         isHex: sp.tradition === 'Witch' && !!sp.focus,
@@ -4631,6 +4641,7 @@ class Component extends DCLogic {
       hasSelection: !!spellAddDef, hasNoSelection: !spellAddDef,
       name: spellAddDef ? spellAddDef.name : '',
       desc: spellAddDef ? spellAddDef.desc : '',
+      descLines: descLines(spellAddDef ? spellAddDef.desc : ''),
       facts: spellAddFacts,
       heightened: (spellAddDef && spellAddDef.heightened) || '',
       hasHeightened: !!(spellAddDef && spellAddDef.heightened),
@@ -4684,7 +4695,7 @@ class Component extends DCLogic {
       const rank = def ? (def.cantrip ? 0 : def.level) : 0;
       const extra = spellExtra(name);
       return {
-        name, rankLabel: def ? (def.cantrip ? 'Cantrip' : 'Level ' + def.level) : '', desc: def ? def.desc : '', meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon,
+        name, rankLabel: def ? (def.cantrip ? 'Cantrip' : 'Level ' + def.level) : '', desc: def ? def.desc : '', descLines: descLines(def ? def.desc : ''), meta: extra.meta, actionIcon: extra.icon, hasActionIcon: extra.hasIcon, actionIconLow: extra.iconLow, actionIconHigh: extra.iconHigh, hasRangeActionIcon: extra.hasRangeIcon,
         castDisabled: staffCharges < rank,
         cast: () => this.castFromStaff(rank),
         remove: () => this.removeStaffSpell(name),
@@ -4741,7 +4752,7 @@ class Component extends DCLogic {
     const formulaBookRowsFull = char.formulaBook.map((it, i) => {
       const extra = formulaExtra(it.name, it.desc, it.damage);
       return {
-      name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      name: it.name, desc: extra.desc, descLines: descLines(extra.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!extra.damage, damage: extra.damage,
       hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier, hasSplash: extra.hasSplash, splashMeta: extra.splashMeta,
       rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
@@ -4762,7 +4773,7 @@ class Component extends DCLogic {
     const preparedAlchemyRowsFull = char.preparedAlchemy.map((it, i) => {
       const extra = formulaExtra(it.name, it.desc, it.damage);
       return {
-      name: it.name, desc: extra.desc, category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
+      name: it.name, desc: extra.desc, descLines: descLines(extra.desc), category: it.category, level: it.level, levelLabel: 'Level ' + it.level,
       hasDamage: !!extra.damage, damage: extra.damage,
       hasTier: extra.hasTier, tierMeta: extra.tierMeta, isUpgradedTier: extra.isUpgradedTier, hasSplash: extra.hasSplash, splashMeta: extra.splashMeta,
       rollDmg: () => this.rollDamage('Damage: ' + it.name, extra.damage, 0),
@@ -4816,6 +4827,7 @@ class Component extends DCLogic {
       hasSelection: !!formulaAddDef, hasNoSelection: !formulaAddDef,
       name: formulaAddDef ? formulaAddDef.name : '',
       desc: formulaAddDef ? formulaAddDef.desc : '',
+      descLines: descLines(formulaAddDef ? formulaAddDef.desc : ''),
       facts: formulaAddDef ? [
         { label: 'Category', value: (FORMULA_CATEGORY_DEFS.find(d => d.key === formulaAddDef.category) || {}).label || formulaAddDef.category },
         { label: 'Level', value: String(formulaAddDef.level) },
