@@ -889,18 +889,10 @@
         <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
             <span style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300)">Feats</span>
-            <sc-if value="{{ editingFeats }}" hint-placeholder-val="{{ false }}">
-              <button class="btn btn-primary" style="padding:4px 12px;font-size:12px" onClick="{{ toggleEditFeats }}">Done</button>
-            </sc-if>
-            <sc-if value="{{ notEditingFeats }}" hint-placeholder-val="{{ true }}">
-              <button class="btn btn-icon" title="Remove feats" onClick="{{ toggleEditFeats }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
-            </sc-if>
+            <button class="btn btn-icon" title="Add feats" onClick="{{ openFeatAddModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
           </div>
           <sc-for list="{{ featRows }}" as="ft" hint-placeholder-count="3">
             <div style="display:flex;align-items:flex-start;gap:8px;padding:var(--space-3) 0;border-bottom:1px solid var(--color-neutral-800)">
-              <sc-if value="{{ editingFeats }}" hint-placeholder-val="{{ false }}">
-                <button class="btn btn-icon" title="Remove feat" onClick="{{ ft.remove }}" style="width:24px;height:24px;padding:0;flex:none;color:oklch(65% 0.16 25)"><i class="ph ph-trash" style="font-size:16px"></i></button>
-              </sc-if>
               <div style="flex:1">
                 <span class="tag tag-accent">{{ ft.source }}</span> <b>{{ ft.name }}</b>
                 <sc-if value="{{ ft.hasActionIcon }}" hint-placeholder-val="{{ false }}">
@@ -913,15 +905,9 @@
               </div>
             </div>
           </sc-for>
-          <div style="display:flex;gap:var(--space-3);margin-top:var(--space-4);flex-wrap:wrap;align-items:stretch">
-            <select class="input" style="flex:1;width:auto;min-width:160px" value="{{ featPick }}" onChange="{{ setFeatPick }}">
-              <option value="">Choose feat to add…</option>
-              <sc-for list="{{ featLibOptions }}" as="fl" hint-placeholder-count="6">
-                <option value="{{ fl.value }}">{{ fl.label }}</option>
-              </sc-for>
-            </select>
-            <button class="btn btn-secondary" style="flex:none;min-height:36px" onClick="{{ addFeatFromPick }}"><i class="ph ph-plus"></i>&nbsp;Add</button>
-          </div>
+          <sc-if value="{{ hasNoFeats }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:var(--color-neutral-500)">No feats yet. Use the gear to add some.</div>
+          </sc-if>
           <sc-if value="{{ hasBonusFeatGrants }}" hint-placeholder-val="{{ false }}">
             <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin:var(--space-6) 0 var(--space-3)">Bonus Feats</div>
             <sc-for list="{{ bonusFeatGrants }}" as="bg" hint-placeholder-count="1">
@@ -2036,6 +2022,84 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ showFeatAddModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeFeatAddModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
+        <div class="dialog-title">Add Feats</div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ featAddTabs }}" as="tb" hint-placeholder-count="4">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
+              </sc-for>
+            </div>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search feats…" value="{{ featAddSearch }}" onChange="{{ setFeatAddSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">Level</span>
+                <span style="width:56px;flex:none;text-align:center">Actions</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoFeatAddRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No feats match.</div>
+                </sc-if>
+                <sc-for list="{{ featAddRows }}" as="fa" hint-placeholder-count="10">
+                  <button style="{{ fa.rowStyle }}" data-feat-add-row="{{ fa.name }}" onClick="{{ fa.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ fa.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ fa.levelLabel }}</span>
+                    <span style="width:56px;flex:none;display:inline-flex;justify-content:center;align-items:center">
+                      <sc-if value="{{ fa.hasActionIcon }}" hint-placeholder-val="{{ false }}">
+                        <img src="{{ fa.actionIcon }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                      </sc-if>
+                    </span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ fa.known }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Already taken" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ featAddDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <span style="font:500 28px var(--font-heading)">{{ featAddDetail.name }}</span>
+                  <sc-if value="{{ featAddDetail.hasActionIcon }}" hint-placeholder-val="{{ false }}">
+                    <img src="{{ featAddDetail.actionIcon }}" alt="" style="height:16px;width:auto;vertical-align:middle">
+                  </sc-if>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ featAddDetail.facts }}" as="ft" hint-placeholder-count="3">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ featAddDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ featAddDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ featAddDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ featAddDetail.addBtnClass }}" style="{{ featAddDetail.addBtnStyle }}" onClick="{{ toggleSelectedFeat }}"><i class="ph {{ featAddDetail.addIconClass }}"></i>&nbsp;{{ featAddDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ featAddDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a feat to see its details.</div>
+            </sc-if>
+          </div>
+
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeFeatAddModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ showXPModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeXPModal }}">
       <div class="dialog" onClick="{{ stopClickPropagation }}">
@@ -2509,6 +2573,17 @@ function findFeatDefByName(data, name) {
   return data.GENERAL_FEATS.find(f => f.name === name) || data.SKILL_FEATS.find(f => f.name === name) || null;
 }
 
+// Which pool a feat belongs to, by where its definition lives. Drives the Add Feats tabs and the
+// source tag a newly added feat gets.
+const FEAT_CATEGORY_LABELS = { ancestry: 'Ancestry', class: 'Class', skill: 'Skill', general: 'General' };
+function featCategoryOf(data, name) {
+  if (data.ANCESTRIES.some(a => a.feats.some(f => f.name === name))) return 'ancestry';
+  if (data.CLASSES.some(c => c.feats.some(f => f.name === name))) return 'class';
+  if (data.SKILL_FEATS.some(f => f.name === name)) return 'skill';
+  if (data.GENERAL_FEATS.some(f => f.name === name)) return 'general';
+  return null;
+}
+
 // Builds the option list for a bonus-feat grant (e.g. Versatile Human, Natural Ambition) given its
 // pool spec and the character's current context. `notTaken` excludes feats already on the sheet.
 function optionsForFeatGrant(spec, data, ancestry, cls, ctx, notTaken) {
@@ -2546,7 +2621,7 @@ class Component extends DCLogic {
     serverError: false,
     checklistShown: {},
     diceLog: [], diceLogOpen: false, diceTrayOpen: false, dicePool: {}, diceModifier: 0, draft: null, builderStep: 0, confirmDeleteId: null,
-    hoveredConditionKey: null, hoveredProficiencyIndex: null, hoveredSkillKey: null, hoveredLoreIndex: null, hoveredWeaponIndex: null, hoveredWeaponDmgIndex: null, hoveredTraitKey: null, featPick: '', hpAdjustAmount: '', shieldAdjustAmount: '', bonusFeatPicks: {}, staffSpellPick: '', staffPrepareRank: '',
+    hoveredConditionKey: null, hoveredProficiencyIndex: null, hoveredSkillKey: null, hoveredLoreIndex: null, hoveredWeaponIndex: null, hoveredWeaponDmgIndex: null, hoveredTraitKey: null, hpAdjustAmount: '', shieldAdjustAmount: '', bonusFeatPicks: {}, staffSpellPick: '', staffPrepareRank: '',
     hoveredWeaponNameKey: null, hoveredInventoryKey: null,
     weaponSearchText: '', weaponSearchOpen: false, gearSearchText: '', gearSearchOpen: false,
     // Keyed by character id (each nested map keyed by category/skill/spell-level key) so expanding
@@ -2561,10 +2636,10 @@ class Component extends DCLogic {
     spellAddTab: 'cantrip', spellAddSelected: null, spellAddSearch: '',
     // Add Formulas browser: same shape as the spells one, with category tabs instead of ranks.
     formulaAddTab: 'bomb', formulaAddSelected: null, formulaAddSearch: '',
+    showFeatAddModal: false, featAddTab: null, featAddSelected: null, featAddSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
-    editingFeats: false,
     editingCurrency: false,
     authChecked: false, signedIn: false, authEmail: null, authError: false, charactersLoaded: false,
   };
@@ -2923,7 +2998,7 @@ class Component extends DCLogic {
   // Switching rank tabs clears the selection, since the selected spell is no longer in the list.
   setSpellAddTab = (key) => this.setState({ spellAddTab: key, spellAddSelected: null });
   selectSpellToAdd = (name) => this.setState({ spellAddSelected: name });
-  // Up/Down steps the selection through an add-browser's list (Add Spells or Add Formulas) exactly as
+  // Up/Down steps the selection through an add-browser's list (Add Spells, Formulas or Feats) exactly as
   // it's displayed (current tab and search filter), stopping at either end rather than wrapping.
   // Each browser's `_…Order` is refreshed on every render, so it always matches what's on screen.
   handleBrowseKeydown = (e) => {
@@ -2934,7 +3009,9 @@ class Component extends DCLogic {
       ? { selected: s.spellAddSelected, order: this._spellAddOrder, attr: 'data-spell-add-row', key: 'spellAddSelected' }
       : s.showFormulaAddModal
         ? { selected: s.formulaAddSelected, order: this._formulaAddOrder, attr: 'data-formula-add-row', key: 'formulaAddSelected' }
-        : null;
+        : s.showFeatAddModal
+          ? { selected: s.featAddSelected, order: this._featAddOrder, attr: 'data-feat-add-row', key: 'featAddSelected' }
+          : null;
     if (!browser || !browser.selected) return;
     const t = e.target;
     if (t && (t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -3364,20 +3441,32 @@ class Component extends DCLogic {
   setPotencyRune = (idx, val) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => i === idx ? { ...w, potencyRune: val } : w) }));
   setStrikingRune = (idx, val) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => i === idx ? { ...w, strikingRune: val } : w) }));
 
-  setFeatPickField = (e) => this.setState({ featPick: e.target.value });
-  addFeatFromPick = () => {
-    const val = this.state.featPick; if (!val) return;
-    const [source, name] = val.split('::');
+  // Add Feats browser. The tab is left unset on open so the render falls back to the first tab the
+  // character has feats for; switching tabs clears the selection, since it's no longer in the list.
+  openFeatAddModal = () => this.setState({ showFeatAddModal: true, featAddTab: null, featAddSelected: null, featAddSearch: '' });
+  closeFeatAddModal = () => this.setState({ showFeatAddModal: false });
+  setFeatAddTab = (key) => this.setState({ featAddTab: key, featAddSelected: null });
+  selectFeatToAdd = (name) => this.setState({ featAddSelected: name });
+  setFeatAddSearchField = (e) => this.setState({ featAddSearch: e.target.value });
+  // Adds or removes the feat shown in the detail pane. New entries keep the { name, desc, source }
+  // shape the old dropdown wrote, with source naming the pool the feat comes from. Removal drops only
+  // the first entry with that name (whatever its source, bonus feats included), like the spells browser.
+  toggleSelectedFeat = () => {
+    const name = this.state.featAddSelected; if (!name) return;
     const data = this.state.data;
-    let desc = '';
-    if (source === 'General') { const f = data.GENERAL_FEATS.find(f => f.name === name); desc = f ? f.desc : ''; }
-    else if (source === 'Ancestry') { const anc = data.ANCESTRIES.find(a => a.key === this.currentChar().ancestryKey); const f = anc && anc.feats.find(f => f.name === name); desc = f ? f.desc : ''; }
-    else if (source === 'Class') { const cls = data.CLASSES.find(c => c.key === this.currentChar().classKey); const f = cls && cls.feats.find(f => f.name === name); desc = f ? f.desc : ''; }
-    else if (source === 'Skill') { const f = data.SKILL_FEATS.find(f => f.name === name); desc = f ? f.desc : ''; }
-    this.updateActiveChar(c => ({ ...c, feats: [...c.feats, { name, desc, source }] }));
-    this.setState({ featPick: '' });
+    this.updateActiveChar(c => {
+      if (c.feats.some(f => f.name === name)) {
+        let dropped = false;
+        return { ...c, feats: c.feats.filter(f => {
+          if (dropped || f.name !== name) return true;
+          dropped = true; return false;
+        }) };
+      }
+      const def = findFeatDefByName(data, name); if (!def) return c;
+      const source = FEAT_CATEGORY_LABELS[featCategoryOf(data, name)] || 'General';
+      return { ...c, feats: [...c.feats, { name: def.name, desc: def.desc, source }] };
+    });
   };
-  removeFeat = (idx) => this.updateActiveChar(c => ({ ...c, feats: c.feats.filter((_, i) => i !== idx) }));
 
   setBonusFeatPick = (grantId, val) => this.setState(s => ({ bonusFeatPicks: { ...s.bonusFeatPicks, [grantId]: val } }));
   addBonusFeatFromPick = (grantId) => {
@@ -3570,7 +3659,6 @@ class Component extends DCLogic {
   });
   toggleEditSkills = () => this.setState(s => ({ editingSkills: !s.editingSkills }));
   toggleEditSaves = () => this.setState(s => ({ editingSaves: !s.editingSaves }));
-  toggleEditFeats = () => this.setState(s => ({ editingFeats: !s.editingFeats }));
   toggleEditCurrency = () => this.setState(s => ({ editingCurrency: !s.editingCurrency }));
   toggleSpellLevel = (charId, key) => this.setState(s => {
     const forChar = s.openSpellLevels[charId] || {};
@@ -4323,7 +4411,6 @@ class Component extends DCLogic {
       return {
         name: f.name, desc: f.desc, descLines: descLines(f.desc), source: f.source, grantedByLabel: f.grantedBy ? ('Bonus from ' + f.grantedBy) : '',
         actionIcon: ACTION_ICONS[cost] || '', hasActionIcon: !!ACTION_ICONS[cost],
-        remove: () => this.removeFeat(i),
       };
     });
     const deity = char.deityKey ? data.DEITIES.find(d => d.key === char.deityKey) : null;
@@ -4371,11 +4458,88 @@ class Component extends DCLogic {
       featNames: new Set(char.feats.map(f => f.name)),
     };
     const notTaken = f => !char.feats.some(cf => cf.name === f.name);
-    const featLibOptions = [];
-    if (ancestry) ancestry.feats.filter(notTaken).filter(f => meetsPrereqs(f, sheetFeatCtx)).forEach(f => featLibOptions.push({ value: 'Ancestry::' + f.name, label: '[Ancestry] ' + f.name }));
-    if (cls) cls.feats.filter(notTaken).filter(f => meetsPrereqs(f, sheetFeatCtx)).forEach(f => featLibOptions.push({ value: 'Class::' + f.name, label: '[Class] ' + f.name }));
-    data.GENERAL_FEATS.filter(notTaken).filter(f => meetsPrereqs(f, sheetFeatCtx)).forEach(f => featLibOptions.push({ value: 'General::' + f.name, label: '[General] ' + f.name }));
-    data.SKILL_FEATS.filter(notTaken).filter(f => meetsPrereqs(f, sheetFeatCtx)).forEach(f => featLibOptions.push({ value: 'Skill::' + f.name, label: '[Skill] ' + f.name }));
+    // ---- Add Feats browser (modal) --------------------------------------------------------
+    // Mirrors the Add Spells browser: one tab per feat pool, a searchable list on the left, detail on
+    // the right. Candidates are the ones the old dropdown offered (your ancestry's and class's feats,
+    // plus general and skill feats) whose prerequisites you meet. Feats you already have stay listed
+    // under their pool, prerequisites or not, with a check so they can be removed from here too.
+    const featPools = {
+      ancestry: ancestry ? ancestry.feats : [],
+      class: cls ? cls.feats : [],
+      skill: data.SKILL_FEATS,
+      general: data.GENERAL_FEATS,
+    };
+    const takenFeatNames = new Set(char.feats.map(f => f.name));
+    const featPoolFor = (key) => {
+      const byName = new Map();
+      featPools[key].filter(f => takenFeatNames.has(f.name) || meetsPrereqs(f, sheetFeatCtx)).forEach(f => byName.set(f.name, f));
+      // Taken feats from outside the pool's usual source (a bonus feat from another ancestry, or an
+      // entry whose definition has since been removed) still need a row here to be removable.
+      char.feats.forEach(cf => {
+        if (byName.has(cf.name)) return;
+        const cat = featCategoryOf(data, cf.name) || ({ Ancestry: 'ancestry', Class: 'class', Skill: 'skill' }[cf.source] || 'general');
+        if (cat === key) byName.set(cf.name, findFeatDefByName(data, cf.name) || { name: cf.name, desc: cf.desc || '' });
+      });
+      return [...byName.values()];
+    };
+    const FEAT_ADD_TAB_DEFS = ['ancestry', 'class', 'skill', 'general']
+      .map(key => ({ key, label: FEAT_CATEGORY_LABELS[key], feats: featPoolFor(key) }))
+      .filter(d => d.feats.length);
+    const featAddTab = FEAT_ADD_TAB_DEFS.some(d => d.key === s.featAddTab) ? s.featAddTab : (FEAT_ADD_TAB_DEFS[0] || {}).key;
+    const featAddTabs = FEAT_ADD_TAB_DEFS.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === featAddTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setFeatAddTab(d.key),
+    }));
+    const featAddQuery = (s.featAddSearch || '').trim().toLowerCase();
+    const featAddRows = ((FEAT_ADD_TAB_DEFS.find(d => d.key === featAddTab) || {}).feats || [])
+      .filter(f => !featAddQuery || f.name.toLowerCase().includes(featAddQuery))
+      .sort((a, b) => (a.level || 0) - (b.level || 0) || a.name.localeCompare(b.name))
+      .map(f => ({
+        name: f.name, levelLabel: f.level ? String(f.level) : '—', known: takenFeatNames.has(f.name),
+        actionIcon: ACTION_ICONS[f.action] || '', hasActionIcon: !!ACTION_ICONS[f.action],
+        select: () => this.selectFeatToAdd(f.name),
+        // Same row styling as the spells browser, including the scroll margin for the sticky header.
+        rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);scroll-margin-top:40px;scroll-margin-bottom:4px;background:${s.featAddSelected === f.name ? 'var(--color-neutral-700)' : 'transparent'}`,
+      }));
+    // Remembered for handleBrowseKeydown, which steps through the rows in exactly this order.
+    this._featAddOrder = featAddRows.map(r => r.name);
+    const featAddTaken = s.featAddSelected ? char.feats.find(f => f.name === s.featAddSelected) : null;
+    const featAddDef = s.featAddSelected ? (findFeatDefByName(data, s.featAddSelected) || (featAddTaken && { name: featAddTaken.name, desc: featAddTaken.desc || '' })) : null;
+    const featAddCategory = featAddDef ? featCategoryOf(data, featAddDef.name) : null;
+    const featAddOwner = featAddCategory === 'ancestry' ? data.ANCESTRIES.find(a => a.feats.some(f => f.name === featAddDef.name))
+      : featAddCategory === 'class' ? data.CLASSES.find(c => c.feats.some(f => f.name === featAddDef.name)) : null;
+    const featAddKnown = !!(featAddDef && takenFeatNames.has(featAddDef.name));
+    const RANK_WORDS = ['untrained', 'trained', 'expert', 'master', 'legendary'];
+    const skillName = (key) => key === 'lore' ? 'Lore' : ((data.SKILLS.find(sk => sk.key === key) || {}).name || key);
+    // Prerequisites in words, from the structured fields meetsPrereqs checks.
+    const featAddPrereqs = featAddDef ? [
+      ...(featAddDef.reqSkills || []).map(r => `${RANK_WORDS[r.rank] || 'trained'} in ${skillName(r.skill)}`),
+      ...(featAddDef.reqPerception ? [`${RANK_WORDS[featAddDef.reqPerception]} in Perception`] : []),
+      ...(featAddDef.reqFeats || []),
+      ...(featAddDef.reqFeatsAny ? [featAddDef.reqFeatsAny.join(' or ')] : []),
+      ...(featAddDef.reqSubclass && featAddOwner && featAddOwner.subclasses ? [((featAddOwner.subclasses.find(sc => sc.key === featAddDef.reqSubclass) || {}).name || featAddDef.reqSubclass)] : []),
+      ...(featAddDef.reqSpellcasting ? ['spellcasting class feature'] : []),
+      ...(featAddDef.reqSanctified ? ['holy or unholy sanctification'] : []),
+      ...(featAddDef.reqFont ? [featAddDef.reqFont === 'any' ? 'divine font' : (featAddDef.reqFont === 'heal' ? 'healing font' : 'harmful font')] : []),
+    ] : [];
+    const featAddDetail = {
+      hasSelection: !!featAddDef, hasNoSelection: !featAddDef,
+      name: featAddDef ? featAddDef.name : '',
+      descLines: descLines(featAddDef ? featAddDef.desc : ''),
+      actionIcon: featAddDef ? (ACTION_ICONS[featAddDef.action] || '') : '', hasActionIcon: !!(featAddDef && ACTION_ICONS[featAddDef.action]),
+      facts: featAddDef ? [
+        { label: 'Type', value: featAddCategory ? FEAT_CATEGORY_LABELS[featAddCategory] + (featAddOwner ? ` (${featAddOwner.name})` : '') : '' },
+        { label: 'Level', value: featAddDef.level ? String(featAddDef.level) : '' },
+        { label: 'Skill', value: featAddDef.skill ? skillName(featAddDef.skill) : '' },
+        { label: 'Prerequisites', value: featAddPrereqs.join(', ') },
+      ].filter(f => f.value) : [],
+      bookName: featAddOwner ? ((data.BOOKS.find(b => b.key === featAddOwner.book) || {}).name || '') : '',
+      addLabel: featAddKnown ? 'Remove Feat' : 'Add Feat',
+      addIconClass: featAddKnown ? 'ph-trash' : 'ph-plus',
+      addBtnClass: featAddKnown ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (featAddKnown ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
+    };
 
     // Some heritages/feats (Versatile Human, Natural Ambition, Multifarious Muse, etc.) grant an
     // extra feat pick from some pool. Surface any not-yet-fulfilled grant as its own picker here.
@@ -5005,8 +5169,10 @@ class Component extends DCLogic {
       runeModalStrikingVal: runeModalWeapon ? (runeModalWeapon.strikingRune || 'none') : 'none',
       setRuneModalPotency: (e) => this.setPotencyRune(runeModalIdx, e.target.value),
       setRuneModalStriking: (e) => this.setStrikingRune(runeModalIdx, e.target.value),
-      featRows, featLibOptions, featPick: s.featPick, setFeatPick: this.setFeatPickField, addFeatFromPick: this.addFeatFromPick,
-      editingFeats: s.editingFeats, notEditingFeats: !s.editingFeats, toggleEditFeats: this.toggleEditFeats,
+      featRows, hasNoFeats: featRows.length === 0,
+      showFeatAddModal: s.showFeatAddModal, openFeatAddModal: this.openFeatAddModal, closeFeatAddModal: this.closeFeatAddModal,
+      featAddTabs, featAddRows, featAddDetail, hasNoFeatAddRows: featAddRows.length === 0,
+      featAddSearch: s.featAddSearch || '', setFeatAddSearch: this.setFeatAddSearchField, toggleSelectedFeat: this.toggleSelectedFeat,
       hasBonusFeatGrants: bonusFeatGrants.length > 0, bonusFeatGrants,
       classFeatures: cls ? [
         ...cls.features
