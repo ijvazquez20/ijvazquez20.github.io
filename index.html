@@ -1426,7 +1426,7 @@
                             <button class="btn btn-icon" title="Activated abilities" onClick="{{ w.toggleActivations }}"><i class="ph {{ w.activationsCaretClass }}" style="font-size:16px;color:var(--color-accent-300)"></i></button>
                           </sc-if>
                         </span>
-                        <button class="btn btn-icon" title="Runes: {{ w.runeSummary }}" onClick="{{ w.editRunes }}"><i class="ph ph-diamonds-four" style="{{ w.runeIconStyle }}"></i></button>
+                        <button class="btn btn-icon" title="{{ w.runeTitle }}" onClick="{{ w.editRunes }}"><i class="ph ph-diamonds-four" style="{{ w.runeIconStyle }}"></i></button>
                         <button class="btn btn-icon" title="Remove" onClick="{{ w.remove }}"><i class="ph ph-trash"></i></button>
                       </div></td>
                     </tr>
@@ -4804,8 +4804,10 @@ class Component extends DCLogic {
         ...runeDamageParts.map(r => `+ ${r.bonusDamage} (${r.name})`),
         ...propertyRuneDefs.filter(r => r.damageNote).map(r => `· ${r.name}: ${r.damageNote}`),
       ].join(' ');
-      const runeSummary = [potencyRune.value !== 'none' ? potencyRune.value : null, strikingRune.value !== 'none' ? strikingRune.label : null]
-        .concat(propertyRuneDefs.map(r => r.name)).filter(Boolean).join(' · ') || 'No runes';
+      // Named in full, and an unetched weapon's button just reads "Runes".
+      const runeSummary = [potencyRune.value !== 'none' ? potencyRune.name : null, strikingRune.value !== 'none' ? strikingRune.name : null]
+        .concat(propertyRuneDefs.map(r => r.name)).filter(Boolean).join(' · ');
+      const runeTitle = runeSummary ? 'Runes: ' + runeSummary : 'Runes';
       const traitList = (w.traits || '').split(',').map(t => t.trim()).filter(Boolean).map((t, ti) => {
         const key = i + '-' + ti;
         return { name: t, desc: data.TRAIT_DESCRIPTIONS[data.traitBaseName(t)] || '', hovered: s.hoveredTraitKey === key, onEnter: () => this.setHoverTrait(key), onLeave: () => this.setHoverTrait(null) };
@@ -4828,7 +4830,7 @@ class Component extends DCLogic {
         rollDmg: () => this.rollDamage('Damage: ' + w.name, rollDamageDice, dmgAbMod),
         runeDamageLabel, hasRuneDamage: !!runeDamageLabel,
         remove: () => this.removeWeapon(i),
-        runeSummary, editRunes: () => this.openRuneModal(i),
+        runeSummary, runeTitle, editRunes: () => this.openRuneModal(i),
         // Lit in the accent colour once the weapon carries a rune, the way the activation icon marks
         // a weapon that has one.
         runeIconStyle: 'font-size:16px' + (potencyRune.value !== 'none' || strikingRune.value !== 'none' || propertyRuneDefs.length
@@ -5049,12 +5051,13 @@ class Component extends DCLogic {
       bookName: shieldRuneDef ? ((data.BOOKS.find(b => b.key === shieldRuneDef.book) || {}).name || '') : '',
       ...runeButton(shieldRuneEtched, false, 'Apply Rune'),
     };
+    // Runes are named in full here ("Armor Potency (+1)"), and an unetched item simply shows nothing.
     const armorRuneSummary = [
-      armorPotency.value !== 'none' ? armorPotency.value : null,
-      resilientRune.value !== 'none' ? resilientRune.label : null,
+      armorPotency.value !== 'none' ? armorPotency.name : null,
+      resilientRune.value !== 'none' ? resilientRune.name : null,
       ...armorPropRunes.map(k => (data.ARMOR_PROPERTY_RUNES.find(r => r.key === k) || {}).name).filter(Boolean),
-    ].filter(Boolean).join(' · ') || 'No runes';
-    const shieldRuneSummary = shieldRune.value !== 'none' ? shieldRune.name : 'No runes';
+    ].filter(Boolean).join(' · ');
+    const shieldRuneSummary = shieldRune.value !== 'none' ? shieldRune.name : '';
 
     // What the Equipped Armor card shows in place of the old dropdown.
     const equippedArmor = char.armorKey ? armorLib.find(a => a.name === char.armorKey) : null;
@@ -5822,11 +5825,11 @@ class Component extends DCLogic {
       hpMinus: () => this.adjustHP(-1), hpPlus: () => this.adjustHP(1),
       setHPCurrent: (e) => this.setHPField('hpCurrent', e.target.value),
       acValue: ac, acAuto, acOverrideVal: char.acOverride, setACOverrideField: (e) => this.setACOverride(e.target.value),
-      equippedArmorName, equippedArmorMeta, armorRuneSummary, armorRuneIconStyle: 'font-size:16px' + (armorRuneSummary === 'No runes' ? '' : ';color:var(--color-accent-300)'),
+      equippedArmorName, equippedArmorMeta, armorRuneSummary, armorRuneIconStyle: 'font-size:16px' + (armorRuneSummary ? ';color:var(--color-accent-300)' : ''),
       showArmorRuneModal: s.showArmorRuneModal, openArmorRuneModal: this.openArmorRuneModal, closeArmorRuneModal: this.closeArmorRuneModal,
       armorRuneTabs, armorRuneRows, armorRuneDetail, hasNoArmorRuneRows: armorRuneRows.length === 0, armorRuneSlotLabel,
       armorRuneSearch: s.armorRuneSearch || '', setArmorRuneSearch: this.setArmorRuneSearchField, toggleSelectedArmorRune: this.toggleSelectedArmorRune,
-      shieldRuneSummary, shieldRuneIconStyle: 'font-size:16px' + (shieldRuneSummary === 'No runes' ? '' : ';color:var(--color-accent-300)'),
+      shieldRuneSummary, shieldRuneIconStyle: 'font-size:16px' + (shieldRuneSummary ? ';color:var(--color-accent-300)' : ''),
       showShieldRuneModal: s.showShieldRuneModal, openShieldRuneModal: this.openShieldRuneModal, closeShieldRuneModal: this.closeShieldRuneModal,
       shieldRuneRows, shieldRuneDetail, hasNoShieldRuneRows: shieldRuneRows.length === 0,
       shieldRuneSearch: s.shieldRuneSearch || '', setShieldRuneSearch: this.setShieldRuneSearchField, toggleSelectedShieldRune: this.toggleSelectedShieldRune,
