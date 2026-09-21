@@ -2309,25 +2309,66 @@
 
   <sc-if value="{{ showRuneModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeRuneModal }}">
-      <div class="dialog" onClick="{{ stopClickPropagation }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
         <div class="dialog-title">Weapon Runes — {{ runeModalWeaponName }}</div>
-        <div class="dialog-body" style="display:flex;flex-direction:column;gap:var(--space-6)">
-          <label class="field">
-            <span>Potency Rune</span>
-            <select class="input" value="{{ runeModalPotencyVal }}" onChange="{{ setRuneModalPotency }}">
-              <sc-for list="{{ potencyRuneOptions }}" as="ro" hint-placeholder-count="4">
-                <option value="{{ ro.value }}">{{ ro.label }}</option>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ runeTabs }}" as="tb" hint-placeholder-count="3">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
               </sc-for>
-            </select>
-          </label>
-          <label class="field">
-            <span>Striking Rune</span>
-            <select class="input" value="{{ runeModalStrikingVal }}" onChange="{{ setRuneModalStriking }}">
-              <sc-for list="{{ strikingRuneOptions }}" as="ro" hint-placeholder-count="4">
-                <option value="{{ ro.value }}">{{ ro.label }}</option>
-              </sc-for>
-            </select>
-          </label>
+            </div>
+            <div style="font-size:11px;color:var(--color-neutral-400)">{{ runeSlotLabel }}</div>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search runes…" value="{{ runeSearch }}" onChange="{{ setRuneSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">Level</span>
+                <span style="width:80px;flex:none;text-align:right">Price</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoRuneRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No runes match.</div>
+                </sc-if>
+                <sc-for list="{{ runeRows }}" as="rr" hint-placeholder-count="8">
+                  <button style="{{ rr.rowStyle }}" data-rune-row="{{ rr.key }}" onClick="{{ rr.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ rr.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ rr.levelLabel }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-size:12px;color:var(--color-neutral-400)">{{ rr.price }}</span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ rr.etched }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Etched on this weapon" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ runeDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ runeDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ runeDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ runeDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ runeDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ runeDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ runeDetail.addBtnClass }}" style="{{ runeDetail.addBtnStyle }}" onClick="{{ toggleSelectedRune }}"><i class="ph {{ runeDetail.addIconClass }}"></i>&nbsp;{{ runeDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ runeDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a rune to see its details.</div>
+            </sc-if>
+          </div>
+
         </div>
         <div class="dialog-actions">
           <button class="btn btn-primary" onClick="{{ closeRuneModal }}">Done</button>
@@ -2647,6 +2688,7 @@ class Component extends DCLogic {
     // Add Formulas browser: same shape as the spells one, with category tabs instead of ranks.
     formulaAddTab: 'bomb', formulaAddSelected: null, formulaAddSearch: '',
     showFeatAddModal: false, featAddTab: null, featAddSelected: null, featAddSearch: '',
+    runeTab: 'potency', runeSelected: null, runeSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -3021,7 +3063,9 @@ class Component extends DCLogic {
         ? { selected: s.formulaAddSelected, order: this._formulaAddOrder, attr: 'data-formula-add-row', key: 'formulaAddSelected' }
         : s.showFeatAddModal
           ? { selected: s.featAddSelected, order: this._featAddOrder, attr: 'data-feat-add-row', key: 'featAddSelected' }
-          : null;
+          : s.showRuneModal
+            ? { selected: s.runeSelected, order: this._runeOrder, attr: 'data-rune-row', key: 'runeSelected' }
+            : null;
     if (!browser || !browser.selected) return;
     const t = e.target;
     if (t && (t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -3446,10 +3490,44 @@ class Component extends DCLogic {
     this.setState({ weaponSearchText: '', weaponSearchOpen: false });
   };
   removeWeapon = (idx) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.filter((_, i) => i !== idx) }));
-  openRuneModal = (idx) => this.setState({ showRuneModal: true, runeModalWeaponIndex: idx });
+  // Weapon runes browser. Opens on the potency tab with nothing selected, like the other browsers.
+  openRuneModal = (idx) => this.setState({ showRuneModal: true, runeModalWeaponIndex: idx, runeTab: 'potency', runeSelected: null, runeSearch: '' });
   closeRuneModal = () => this.setState({ showRuneModal: false, runeModalWeaponIndex: null });
-  setPotencyRune = (idx, val) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => i === idx ? { ...w, potencyRune: val } : w) }));
+  setRuneTab = (key) => this.setState({ runeTab: key, runeSelected: null });
+  selectRune = (key) => this.setState({ runeSelected: key });
+  setRuneSearchField = (e) => this.setState({ runeSearch: e.target.value });
+  // Lowering the potency rune also lowers how many property runes the weapon can hold, so any that
+  // no longer fit come off (the last etched ones first).
+  setPotencyRune = (idx, val) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => {
+    if (i !== idx) return w;
+    const slots = (this.state.data.POTENCY_RUNES.find(r => r.value === val) || {}).bonus || 0;
+    const etched = w.propertyRunes || [];
+    return { ...w, potencyRune: val, propertyRunes: etched.slice(0, slots) };
+  }) }));
   setStrikingRune = (idx, val) => this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => i === idx ? { ...w, strikingRune: val } : w) }));
+  // Etches or removes the rune shown in the detail pane. Fundamental runes are a single choice, so
+  // picking one replaces whatever was there; property runes accumulate up to the potency rune's
+  // limit (+1 one rune, +2 two, +3 three), which the detail button reports when it's reached.
+  toggleSelectedRune = () => {
+    const { runeTab, runeSelected, runeModalWeaponIndex: idx } = this.state;
+    if (!runeSelected || idx == null) return;
+    if (runeTab === 'potency') {
+      const w = this.currentChar().weapons[idx];
+      return this.setPotencyRune(idx, (w && w.potencyRune) === runeSelected ? 'none' : runeSelected);
+    }
+    if (runeTab === 'striking') {
+      const w = this.currentChar().weapons[idx];
+      return this.setStrikingRune(idx, (w && w.strikingRune) === runeSelected ? 'none' : runeSelected);
+    }
+    this.updateActiveChar(c => ({ ...c, weapons: c.weapons.map((w, i) => {
+      if (i !== idx) return w;
+      const etched = w.propertyRunes || [];
+      if (etched.includes(runeSelected)) return { ...w, propertyRunes: etched.filter(k => k !== runeSelected) };
+      const slots = (this.state.data.POTENCY_RUNES.find(r => r.value === (w.potencyRune || 'none')) || {}).bonus || 0;
+      if (etched.length >= slots) return w;
+      return { ...w, propertyRunes: [...etched, runeSelected] };
+    }) }));
+  };
 
   // Add Feats browser. The tab is left unset on open so the render falls back to the first tab the
   // character has feats for; switching tabs clears the selection, since it's no longer in the list.
@@ -4378,7 +4456,9 @@ class Component extends DCLogic {
       const dmgBreakdown = dmgAbMod !== 0
         ? `${damageDice} ${dmgAbMod >= 0 ? '+' : '-'} ${Math.abs(dmgAbMod)} (${dmgAbLabel})`
         : damageDice;
-      const runeSummary = [potencyRune.value !== 'none' ? potencyRune.value : null, strikingRune.value !== 'none' ? strikingRune.label : null].filter(Boolean).join(' · ') || 'No runes';
+      const propertyRuneDefs = (w.propertyRunes || []).map(k => data.WEAPON_PROPERTY_RUNES.find(r => r.key === k)).filter(Boolean);
+      const runeSummary = [potencyRune.value !== 'none' ? potencyRune.value : null, strikingRune.value !== 'none' ? strikingRune.label : null]
+        .concat(propertyRuneDefs.map(r => r.name)).filter(Boolean).join(' · ') || 'No runes';
       const traitList = (w.traits || '').split(',').map(t => t.trim()).filter(Boolean).map((t, ti) => {
         const key = i + '-' + ti;
         return { name: t, desc: data.TRAIT_DESCRIPTIONS[data.traitBaseName(t)] || '', hovered: s.hoveredTraitKey === key, onEnter: () => this.setHoverTrait(key), onLeave: () => this.setHoverTrait(null) };
@@ -4413,10 +4493,65 @@ class Component extends DCLogic {
     const weaponSearchQuery = (s.weaponSearchText || '').trim().toLowerCase();
     const weaponSearchResults = weaponLibOptions.filter(w => !weaponSearchQuery || w.name.toLowerCase().includes(weaponSearchQuery)).slice(0, 10)
       .map(w => ({ label: `${w.name} (${w.damage})`, select: () => this.addWeaponFromPick(w.name) }));
+    // ---- Weapon runes browser (modal) -----------------------------------------------------
+    // Mirrors the Add Spells browser: tabs for the two fundamental runes and the property runes, a
+    // searchable list on the left, the rune's own stat block on the right.
     const runeModalIdx = s.runeModalWeaponIndex;
     const runeModalWeapon = (runeModalIdx != null && char.weapons[runeModalIdx]) ? char.weapons[runeModalIdx] : null;
-    const potencyRuneOptions = data.POTENCY_RUNES.map(r => ({ value: r.value, label: r.label }));
-    const strikingRuneOptions = data.STRIKING_RUNES.map(r => ({ value: r.value, label: r.label }));
+    const runeWeaponPotency = runeModalWeapon ? (runeModalWeapon.potencyRune || 'none') : 'none';
+    const runeWeaponStriking = runeModalWeapon ? (runeModalWeapon.strikingRune || 'none') : 'none';
+    const runeWeaponProps = (runeModalWeapon && runeModalWeapon.propertyRunes) || [];
+    const runePropertySlots = (data.POTENCY_RUNES.find(r => r.value === runeWeaponPotency) || {}).bonus || 0;
+    const RUNE_TAB_DEFS = [
+      { key: 'potency', label: 'Potency', runes: data.POTENCY_RUNES.filter(r => r.value !== 'none').map(r => ({ ...r, key: r.value, etched: r.value === runeWeaponPotency })) },
+      { key: 'striking', label: 'Striking', runes: data.STRIKING_RUNES.filter(r => r.value !== 'none').map(r => ({ ...r, key: r.value, etched: r.value === runeWeaponStriking })) },
+      { key: 'property', label: 'Property', runes: data.WEAPON_PROPERTY_RUNES.map(r => ({ ...r, etched: runeWeaponProps.includes(r.key) })) },
+    ];
+    const runeTab = RUNE_TAB_DEFS.some(d => d.key === s.runeTab) ? s.runeTab : 'potency';
+    const runeTabs = RUNE_TAB_DEFS.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === runeTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setRuneTab(d.key),
+    }));
+    const runeQuery = (s.runeSearch || '').trim().toLowerCase();
+    const runeTabRunes = (RUNE_TAB_DEFS.find(d => d.key === runeTab) || {}).runes || [];
+    const runeRows = runeTabRunes
+      .filter(r => !runeQuery || r.name.toLowerCase().includes(runeQuery))
+      .map(r => ({
+        key: r.key, name: r.name, levelLabel: String(r.level), price: r.price, etched: r.etched,
+        select: () => this.selectRune(r.key),
+        // Same row styling as the spells browser, including the scroll margin for the sticky header.
+        rowStyle: `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);scroll-margin-top:40px;scroll-margin-bottom:4px;background:${s.runeSelected === r.key ? 'var(--color-neutral-700)' : 'transparent'}`,
+      }));
+    // Remembered for handleBrowseKeydown, which steps through the rows in exactly this order.
+    this._runeOrder = runeRows.map(r => r.key);
+    const runeDef = s.runeSelected ? runeTabRunes.find(r => r.key === s.runeSelected) : null;
+    const runeEtched = !!(runeDef && runeDef.etched);
+    const runeSlotsFull = runeTab === 'property' && !runeEtched && runeWeaponProps.length >= runePropertySlots;
+    const runeAddLabel = runeEtched ? 'Remove Rune'
+      : runeSlotsFull ? (runePropertySlots === 0 ? 'Needs a potency rune' : 'No free property rune slots')
+      : (runeTab === 'property' ? 'Etch Rune' : 'Apply Rune');
+    const runeDetail = {
+      hasSelection: !!runeDef, hasNoSelection: !runeDef,
+      name: runeDef ? runeDef.name : '',
+      descLines: descLines(runeDef ? runeDef.desc : ''),
+      facts: runeDef ? [
+        { label: 'Level', value: String(runeDef.level || '') },
+        { label: 'Price', value: runeDef.price || '' },
+        { label: 'Usage', value: runeDef.usage || '' },
+        { label: 'Traits', value: runeDef.traits || '' },
+        { label: 'Rarity', value: runeDef.rarity && runeDef.rarity !== 'common' ? (runeDef.rarity[0].toUpperCase() + runeDef.rarity.slice(1)) : '' },
+      ].filter(f => f.value) : [],
+      bookName: runeDef ? ((data.BOOKS.find(b => b.key === runeDef.book) || {}).name || '') : '',
+      addLabel: runeAddLabel,
+      addIconClass: runeEtched ? 'ph-trash' : 'ph-plus',
+      addBtnClass: runeEtched ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (runeEtched ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : runeSlotsFull ? ';opacity:0.5;cursor:not-allowed' : ''),
+    };
+    // A weapon can hold one property rune per point of potency; show the slots either way.
+    const runeSlotLabel = runePropertySlots
+      ? `Property runes: ${runeWeaponProps.length} / ${runePropertySlots}`
+      : 'Property runes need a potency rune first';
     const armorOptions = data.ARMORS.filter(a => bf[a.book]);
     const gearLibOptions = data.GEAR.filter(g => !g.book || bf[g.book]).sort((a, b) => a.name.localeCompare(b.name));
     const gearSearchQuery = (s.gearSearchText || '').trim().toLowerCase();
@@ -5196,11 +5331,8 @@ class Component extends DCLogic {
       openWeaponSearch: this.openWeaponSearch, closeWeaponSearch: this.closeWeaponSearch, weaponSearchResults, hasNoWeaponSearchResults: weaponSearchResults.length === 0,
       showRuneModal: s.showRuneModal, closeRuneModal: this.closeRuneModal,
       runeModalWeaponName: runeModalWeapon ? runeModalWeapon.name : '',
-      potencyRuneOptions, strikingRuneOptions,
-      runeModalPotencyVal: runeModalWeapon ? (runeModalWeapon.potencyRune || 'none') : 'none',
-      runeModalStrikingVal: runeModalWeapon ? (runeModalWeapon.strikingRune || 'none') : 'none',
-      setRuneModalPotency: (e) => this.setPotencyRune(runeModalIdx, e.target.value),
-      setRuneModalStriking: (e) => this.setStrikingRune(runeModalIdx, e.target.value),
+      runeTabs, runeRows, runeDetail, hasNoRuneRows: runeRows.length === 0, runeSlotLabel,
+      runeSearch: s.runeSearch || '', setRuneSearch: this.setRuneSearchField, toggleSelectedRune: this.toggleSelectedRune,
       featRows, hasNoFeats: featRows.length === 0,
       showFeatAddModal: s.showFeatAddModal, openFeatAddModal: this.openFeatAddModal, closeFeatAddModal: this.closeFeatAddModal,
       featAddTabs, featAddRows, featAddDetail, hasNoFeatAddRows: featAddRows.length === 0,
