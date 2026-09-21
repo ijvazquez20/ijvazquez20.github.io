@@ -1338,31 +1338,24 @@
         <div style="display:flex;gap:var(--space-4);align-items:flex-start;flex-wrap:wrap">
           <div style="display:flex;flex-direction:column;gap:var(--space-4);flex:1;min-width:240px;max-width:20%">
             <div class="card" style="padding:var(--space-4)">
-              <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);padding-top:8px">Equipped Armor</div>
-              <label class="field">
-                <select class="input" value="{{ armorKeyVal }}" onChange="{{ setArmorField }}">
-                  <option value="">None (Unarmored)</option>
-                  <sc-for list="{{ armorOptions }}" as="am" hint-placeholder-count="4">
-                    <option value="{{ am.name }}">{{ am.name }} (+{{ am.acBonus }} AC)</option>
-                  </sc-for>
-                </select>
-              </label>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
+                <span style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300)">Equipped Armor</span>
+                <button class="btn btn-icon" title="Choose armor" onClick="{{ openArmorModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+              </div>
+              <div style="font:500 15px var(--font-heading)">{{ equippedArmorName }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-300);margin-top:4px">{{ equippedArmorMeta }}</div>
             </div>
             <div class="card" style="padding:var(--space-4)">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
                 <span style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300)">Equipped Shield</span>
-                <sc-if value="{{ shieldBroken }}" hint-placeholder-val="{{ false }}">
-                  <span class="tag" style="background:oklch(30% 0.1 25);color:oklch(80% 0.16 25)">Broken</span>
-                </sc-if>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <sc-if value="{{ shieldBroken }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag" style="background:oklch(30% 0.1 25);color:oklch(80% 0.16 25)">Broken</span>
+                  </sc-if>
+                  <button class="btn btn-icon" title="Choose shield" onClick="{{ openShieldModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+                </div>
               </div>
-              <label class="field">
-                <select class="input" value="{{ shieldKeyVal }}" onChange="{{ setShieldField }}">
-                  <option value="">None</option>
-                  <sc-for list="{{ shieldOptions }}" as="sh" hint-placeholder-count="4">
-                    <option value="{{ sh.name }}">{{ sh.name }}</option>
-                  </sc-for>
-                </select>
-              </label>
+              <div style="font:500 15px var(--font-heading)">{{ equippedShieldName }}</div>
               <sc-if value="{{ hasShield }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:12px;color:var(--color-neutral-300);margin-top:8px">AC +{{ shieldAcBonus }} (raised) · Hardness {{ shieldHardness }} · BT {{ shieldBt }}</div>
                 <div style="font:500 15px var(--font-heading);margin:6px 0">Shield HP {{ shieldHpCurrent }} / {{ shieldHpMax }}</div>
@@ -2091,6 +2084,140 @@
     </div>
   </sc-if>
 
+
+  <sc-if value="{{ showArmorModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeArmorModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
+        <div class="dialog-title">Equip Armor</div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ armorTabs }}" as="tb" hint-placeholder-count="4">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
+              </sc-for>
+            </div>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search armor…" value="{{ armorSearch }}" onChange="{{ setArmorSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">AC</span>
+                <span style="width:80px;flex:none;text-align:right">Price</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoArmorRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No armor match.</div>
+                </sc-if>
+                <sc-for list="{{ armorRows }}" as="ar" hint-placeholder-count="6">
+                  <button style="{{ ar.rowStyle }}" data-armor-row="{{ ar.name }}" onClick="{{ ar.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ar.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ ar.acLabel }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-size:12px;color:var(--color-neutral-400)">{{ ar.price }}</span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ ar.equipped }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Equipped" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ armorDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ armorDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ armorDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ armorDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ armorDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ armorDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ armorDetail.addBtnClass }}" style="{{ armorDetail.addBtnStyle }}" onClick="{{ toggleSelectedArmor }}"><i class="ph {{ armorDetail.addIconClass }}"></i>&nbsp;{{ armorDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ armorDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select armor to see its details.</div>
+            </sc-if>
+          </div>
+
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeArmorModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showShieldModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeShieldModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
+        <div class="dialog-title">Equip Shield</div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search shield…" value="{{ shieldSearch }}" onChange="{{ setShieldSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">AC</span>
+                <span style="width:80px;flex:none;text-align:right">Price</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoShieldRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No shield match.</div>
+                </sc-if>
+                <sc-for list="{{ shieldRows }}" as="ar" hint-placeholder-count="6">
+                  <button style="{{ ar.rowStyle }}" data-shield-row="{{ ar.name }}" onClick="{{ ar.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ar.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ ar.acLabel }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-size:12px;color:var(--color-neutral-400)">{{ ar.price }}</span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ ar.equipped }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Equipped" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ shieldDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ shieldDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ shieldDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ shieldDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ shieldDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ shieldDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ shieldDetail.addBtnClass }}" style="{{ shieldDetail.addBtnStyle }}" onClick="{{ toggleSelectedShield }}"><i class="ph {{ shieldDetail.addIconClass }}"></i>&nbsp;{{ shieldDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ shieldDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a shield to see its details.</div>
+            </sc-if>
+          </div>
+
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeShieldModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ showXPModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeXPModal }}">
       <div class="dialog" onClick="{{ stopClickPropagation }}">
@@ -2672,6 +2799,8 @@ class Component extends DCLogic {
     formulaAddTab: 'bomb', formulaAddSelected: null, formulaAddSearch: '',
     showFeatAddModal: false, featAddTab: null, featAddSelected: null, featAddSearch: '',
     runeTab: 'potency', runeSelected: null, runeSearch: '',
+    showArmorModal: false, armorTab: null, armorSelected: null, armorSearch: '',
+    showShieldModal: false, shieldSelected: null, shieldSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -3048,7 +3177,11 @@ class Component extends DCLogic {
           ? { selected: s.featAddSelected, order: this._featAddOrder, attr: 'data-feat-add-row', key: 'featAddSelected' }
           : s.showRuneModal
             ? { selected: s.runeSelected, order: this._runeOrder, attr: 'data-rune-row', key: 'runeSelected' }
-            : null;
+            : s.showArmorModal
+              ? { selected: s.armorSelected, order: this._armorOrder, attr: 'data-armor-row', key: 'armorSelected' }
+              : s.showShieldModal
+                ? { selected: s.shieldSelected, order: this._shieldOrder, attr: 'data-shield-row', key: 'shieldSelected' }
+                : null;
     if (!browser || !browser.selected) return;
     const t = e.target;
     if (t && (t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -3431,6 +3564,26 @@ class Component extends DCLogic {
     const shield = this.state.data.SHIELDS.find(sh => sh.name === key);
     return { ...c, shieldKey: key, shieldHpCurrent: shield ? shield.hp : null };
   });
+  // Armor and shield browsers, in the shape of the other add-modals: open with nothing selected,
+  // tabs (armor only) clear the selection, and the detail button equips or unequips.
+  openArmorModal = () => this.setState({ showArmorModal: true, armorTab: null, armorSelected: null, armorSearch: '' });
+  closeArmorModal = () => this.setState({ showArmorModal: false });
+  setArmorTab = (key) => this.setState({ armorTab: key, armorSelected: null });
+  selectArmorToAdd = (name) => this.setState({ armorSelected: name });
+  setArmorSearchField = (e) => this.setState({ armorSearch: e.target.value });
+  toggleSelectedArmor = () => {
+    const name = this.state.armorSelected; if (!name) return;
+    this.setArmor(this.currentChar().armorKey === name ? '' : name);
+  };
+  openShieldModal = () => this.setState({ showShieldModal: true, shieldSelected: null, shieldSearch: '' });
+  closeShieldModal = () => this.setState({ showShieldModal: false });
+  selectShieldToAdd = (name) => this.setState({ shieldSelected: name });
+  setShieldSearchField = (e) => this.setState({ shieldSearch: e.target.value });
+  toggleSelectedShield = () => {
+    const name = this.state.shieldSelected; if (!name) return;
+    this.setShield(this.currentChar().shieldKey === name ? '' : name);
+  };
+
   setACOverride = (val) => this.updateActiveChar(c => ({ ...c, acOverride: val }));
 
   setHPAdjustAmount = (val) => this.setState({ hpAdjustAmount: val });
@@ -4548,7 +4701,87 @@ class Component extends DCLogic {
     const runeSlotLabel = runePropertySlots
       ? `Property runes: ${runeWeaponProps.length} / ${runePropertySlots}`
       : 'Property runes need a potency rune first';
-    const armorOptions = data.ARMORS.filter(a => bf[a.book]);
+    // ---- Armor and shield browsers (modals) -------------------------------------------------
+    // Same shape as the other browsers: the armor one has a tab per proficiency category, the
+    // shield one is a single list. Both equip on selection rather than accumulating.
+    const armorLib = data.ARMORS.filter(a => bf[a.book]);
+    const ARMOR_TAB_DEFS = ['Unarmored', 'Light', 'Medium', 'Heavy']
+      .map(key => ({ key, label: key, armors: armorLib.filter(a => a.category === key) }))
+      .filter(d => d.armors.length);
+    const armorTab = ARMOR_TAB_DEFS.some(d => d.key === s.armorTab) ? s.armorTab : (ARMOR_TAB_DEFS[0] || {}).key;
+    const armorTabs = ARMOR_TAB_DEFS.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === armorTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setArmorTab(d.key),
+    }));
+    const armorQuery = (s.armorSearch || '').trim().toLowerCase();
+    const rowStyleFor = (selected) => `display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer;padding:6px 8px;border:none;border-radius:var(--radius-sm);color:var(--color-text);scroll-margin-top:40px;scroll-margin-bottom:4px;background:${selected ? 'var(--color-neutral-700)' : 'transparent'}`;
+    const armorRows = ((ARMOR_TAB_DEFS.find(d => d.key === armorTab) || {}).armors || [])
+      .filter(a => !armorQuery || a.name.toLowerCase().includes(armorQuery))
+      .map(a => ({
+        name: a.name, acLabel: '+' + a.acBonus, price: a.price || '', equipped: char.armorKey === a.name,
+        select: () => this.selectArmorToAdd(a.name),
+        rowStyle: rowStyleFor(s.armorSelected === a.name),
+      }));
+    this._armorOrder = armorRows.map(r => r.name);
+    const armorDef = s.armorSelected ? armorLib.find(a => a.name === s.armorSelected) : null;
+    const armorEquipped = !!(armorDef && char.armorKey === armorDef.name);
+    const armorDetail = {
+      hasSelection: !!armorDef, hasNoSelection: !armorDef,
+      name: armorDef ? armorDef.name : '',
+      descLines: descLines(armorDef ? armorDef.desc : ''),
+      facts: armorDef ? [
+        { label: 'Category', value: armorDef.category },
+        { label: 'AC Bonus', value: '+' + armorDef.acBonus },
+        { label: 'Dex Cap', value: '+' + armorDef.dexCap },
+        { label: 'Check Penalty', value: armorDef.checkPenalty ? String(armorDef.checkPenalty) : '—' },
+        { label: 'Speed Penalty', value: armorDef.speedPenalty ? armorDef.speedPenalty + ' ft.' : '—' },
+        { label: 'Strength', value: armorDef.strength ? String(armorDef.strength) : '—' },
+        { label: 'Bulk', value: armorDef.bulk },
+        { label: 'Group', value: armorDef.group || '' },
+        { label: 'Price', value: armorDef.price || '' },
+      ].filter(f => f.value) : [],
+      bookName: armorDef ? ((data.BOOKS.find(b => b.key === armorDef.book) || {}).name || '') : '',
+      addLabel: armorEquipped ? 'Unequip Armor' : 'Equip Armor',
+      addIconClass: armorEquipped ? 'ph-trash' : 'ph-plus',
+      addBtnClass: armorEquipped ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (armorEquipped ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
+    };
+    const shieldLib = data.SHIELDS.filter(sh => bf[sh.book]);
+    const shieldQuery = (s.shieldSearch || '').trim().toLowerCase();
+    const shieldRows = shieldLib
+      .filter(sh => !shieldQuery || sh.name.toLowerCase().includes(shieldQuery))
+      .map(sh => ({
+        name: sh.name, acLabel: '+' + sh.acBonus, price: sh.price || '', equipped: char.shieldKey === sh.name,
+        select: () => this.selectShieldToAdd(sh.name),
+        rowStyle: rowStyleFor(s.shieldSelected === sh.name),
+      }));
+    this._shieldOrder = shieldRows.map(r => r.name);
+    const shieldDef = s.shieldSelected ? shieldLib.find(sh => sh.name === s.shieldSelected) : null;
+    const shieldEquipped = !!(shieldDef && char.shieldKey === shieldDef.name);
+    const shieldDetail = {
+      hasSelection: !!shieldDef, hasNoSelection: !shieldDef,
+      name: shieldDef ? shieldDef.name : '',
+      descLines: descLines(shieldDef ? shieldDef.desc : ''),
+      facts: shieldDef ? [
+        { label: 'AC Bonus', value: '+' + shieldDef.acBonus },
+        { label: 'Hardness', value: String(shieldDef.hardness) },
+        { label: 'HP (BT)', value: `${shieldDef.hp} (${shieldDef.bt})` },
+        { label: 'Bulk', value: shieldDef.bulk },
+        { label: 'Price', value: shieldDef.price || '' },
+      ].filter(f => f.value) : [],
+      bookName: shieldDef ? ((data.BOOKS.find(b => b.key === shieldDef.book) || {}).name || '') : '',
+      addLabel: shieldEquipped ? 'Unequip Shield' : 'Equip Shield',
+      addIconClass: shieldEquipped ? 'ph-trash' : 'ph-plus',
+      addBtnClass: shieldEquipped ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (shieldEquipped ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
+    };
+    // What the Equipped Armor card shows in place of the old dropdown.
+    const equippedArmor = char.armorKey ? armorLib.find(a => a.name === char.armorKey) : null;
+    const equippedArmorName = equippedArmor ? equippedArmor.name : 'None (Unarmored)';
+    const equippedArmorMeta = equippedArmor
+      ? [`AC +${equippedArmor.acBonus}`, `Dex cap +${equippedArmor.dexCap}`, equippedArmor.checkPenalty ? `Check ${equippedArmor.checkPenalty}` : '', equippedArmor.speedPenalty ? `Speed ${equippedArmor.speedPenalty} ft.` : '', `Bulk ${equippedArmor.bulk}`].filter(Boolean).join(' · ')
+      : 'No armor equipped';
     const gearLibOptions = data.GEAR.filter(g => !g.book || bf[g.book]).sort((a, b) => a.name.localeCompare(b.name));
     const gearSearchQuery = (s.gearSearchText || '').trim().toLowerCase();
     const gearSearchResults = gearLibOptions.filter(g => !gearSearchQuery || g.name.toLowerCase().includes(gearSearchQuery)).slice(0, 10)
@@ -5309,7 +5542,10 @@ class Component extends DCLogic {
       hpMinus: () => this.adjustHP(-1), hpPlus: () => this.adjustHP(1),
       setHPCurrent: (e) => this.setHPField('hpCurrent', e.target.value),
       acValue: ac, acAuto, acOverrideVal: char.acOverride, setACOverrideField: (e) => this.setACOverride(e.target.value),
-      armorKeyVal: char.armorKey || '', setArmorField: (e) => this.setArmor(e.target.value), armorOptions,
+      equippedArmorName, equippedArmorMeta,
+      showArmorModal: s.showArmorModal, openArmorModal: this.openArmorModal, closeArmorModal: this.closeArmorModal,
+      armorTabs, armorRows, armorDetail, hasNoArmorRows: armorRows.length === 0,
+      armorSearch: s.armorSearch || '', setArmorSearch: this.setArmorSearchField, toggleSelectedArmor: this.toggleSelectedArmor,
       perceptionModStr: data.fmtMod(perceptionMod), rollPerception: () => this.rollCheck('Perception', perceptionMod),
       perceptionRankName: data.RANK_NAMES[char.perceptionRank], perceptionBadgeLabel: data.RANK_NAMES[char.perceptionRank][0], perceptionBadgeStyle: badgeStyleFor(char.perceptionRank),
       hpAdjustAmount: s.hpAdjustAmount, setHPAdjustAmountField: (e) => this.setHPAdjustAmount(e.target.value),
@@ -5382,7 +5618,9 @@ class Component extends DCLogic {
       gearSearchText: s.gearSearchText, gearSearchOpen: s.gearSearchOpen, setGearSearchField: this.setGearSearchField,
       openGearSearch: this.openGearSearch, closeGearSearch: this.closeGearSearch, gearSearchResults, hasNoGearSearchResults: gearSearchResults.length === 0,
       editingCurrency: s.editingCurrency, notEditingCurrency: !s.editingCurrency, toggleEditCurrency: this.toggleEditCurrency,
-      shieldOptions: data.SHIELDS.filter(sh => bf[sh.book]), shieldKeyVal: char.shieldKey || '', setShieldField: (e) => this.setShield(e.target.value),
+      showShieldModal: s.showShieldModal, openShieldModal: this.openShieldModal, closeShieldModal: this.closeShieldModal,
+      shieldRows, shieldDetail, hasNoShieldRows: shieldRows.length === 0, equippedShieldName: char.shieldKey || 'None',
+      shieldSearch: s.shieldSearch || '', setShieldSearch: this.setShieldSearchField, toggleSelectedShield: this.toggleSelectedShield,
       hasShield: !!shield, shieldAcBonus: shield ? shield.acBonus : 0, shieldHardness: shield ? shield.hardness : 0, shieldBt: shield ? shield.bt : 0,
       shieldHpCurrent, shieldHpMax, shieldBroken,
       setShieldHPCurrent: (e) => this.setShieldHPField(e.target.value),
