@@ -1009,7 +1009,7 @@
         </sc-if>
         <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:flex-start">
         <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
-          <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);padding-top:8px">Prepared Spells</div>
+          <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);display:flex;align-items:center;min-height:32px">Prepared Spells</div>
           <sc-for list="{{ availableSpellGroups }}" as="grp" hint-placeholder-count="2">
             <div style="margin-bottom:var(--space-3)">
               <div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-neutral-800)">
@@ -1229,7 +1229,7 @@
         <div style="font-size:11px;color:var(--color-neutral-500);margin:-8px 0 var(--space-4)">Advanced Alchemy capacity is 4 + your Intelligence modifier ({{ advancedAlchemyCapacity }}); Versatile Vials regain 2 per 10 minutes of exploration, up to your maximum.</div>
         <div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:flex-start">
         <div class="card" style="padding:var(--space-4);flex:1;min-width:420px">
-          <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);padding-top:8px">Prepared Today</div>
+          <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);display:flex;align-items:center;min-height:32px">Prepared Today</div>
           <sc-if value="{{ hasNoPreparedAlchemy }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:var(--color-neutral-400)">Add formulas from your Formula Book to today’s Advanced Alchemy batch.</div>
           </sc-if>
