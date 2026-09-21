@@ -1012,68 +1012,69 @@
           <div style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300);margin-bottom:var(--space-3);padding-top:8px">Prepared Spells</div>
           <sc-for list="{{ availableSpellGroups }}" as="grp" hint-placeholder-count="2">
             <div style="margin-bottom:var(--space-3)">
-              <sc-if value="{{ grp.isNotFocusGroup }}" hint-placeholder-val="{{ true }}">
-                <div style="font:500 14px var(--font-heading);padding:8px 0;border-bottom:1px solid var(--color-neutral-800);margin-bottom:var(--space-3)">{{ grp.label }}</div>
-              </sc-if>
-              <sc-if value="{{ grp.isFocusGroup }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-neutral-800);margin-bottom:var(--space-3)">
+              <div style="display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--color-neutral-800)">
+                <button onClick="{{ grp.toggle }}" style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;background:transparent;border:none;padding:8px 0;cursor:pointer;color:var(--color-text);font:inherit;text-align:left">
+                  <i class="ph {{ grp.caretClass }}"></i>
                   <span style="font:500 14px var(--font-heading)">{{ grp.label }}</span>
+                </button>
+                <sc-if value="{{ grp.isFocusGroup }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:8px;align-items:center">
                     <sc-for list="{{ grp.focusPips }}" as="fp" hint-placeholder-count="2">
                       <input type="checkbox" checked="{{ fp.on }}" onChange="{{ fp.toggle }}" title="Focus Point" style="width:16px;height:16px;accent-color:var(--color-accent);cursor:pointer">
                     </sc-for>
                   </div>
-                </div>
-              </sc-if>
-              <sc-if value="{{ grp.isFontGroup }}" hint-placeholder-val="{{ false }}">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-neutral-800);margin-bottom:var(--space-3)">
-                  <span style="font:500 14px var(--font-heading)">{{ grp.label }}</span>
+                </sc-if>
+                <sc-if value="{{ grp.isFontGroup }}" hint-placeholder-val="{{ false }}">
                   <div style="display:flex;gap:8px;align-items:center">
                     <sc-for list="{{ grp.fontPips }}" as="fp" hint-placeholder-count="2">
                       <input type="checkbox" checked="{{ fp.on }}" onChange="{{ fp.toggle }}" title="Font Slot" style="width:16px;height:16px;accent-color:var(--color-accent);cursor:pointer">
                     </sc-for>
                   </div>
-                </div>
-              </sc-if>
-              <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-                <sc-for list="{{ grp.rows }}" as="av" hint-placeholder-count="3">
-                  <div class="card" style="{{ av.rowStyle }}">
-                    <div>
-                      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-                        <span class="{{ av.tagClass }}">{{ av.levelLabel }}</span>
-                        <sc-if value="{{ av.isHex }}" hint-placeholder-val="{{ false }}">
-                          <span class="tag tag-accent" title="Your patron allows only one hex each turn">Hex</span>
-                        </sc-if>
-                        <b>{{ av.name }}</b>
-                        <sc-if value="{{ av.hasActionIcon }}" hint-placeholder-val="{{ false }}">
-                          <img src="{{ av.actionIcon }}" alt="" style="height:14px;width:auto;vertical-align:middle">
-                        </sc-if>
-                        <sc-if value="{{ av.hasRangeActionIcon }}" hint-placeholder-val="{{ false }}">
-                          <span style="display:inline-flex;align-items:center;gap:3px">
-                            <img src="{{ av.actionIconLow }}" alt="" style="height:14px;width:auto;vertical-align:middle">
-                            <span style="font-size:11px;color:var(--color-neutral-400)">to</span>
-                            <img src="{{ av.actionIconHigh }}" alt="" style="height:14px;width:auto;vertical-align:middle">
-                          </span>
-                        </sc-if>
-                        <sc-if value="{{ av.hasDamage }}" hint-placeholder-val="{{ false }}">
-                          <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ av.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ av.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
-                        </sc-if>
+                </sc-if>
+              </div>
+              <div style="{{ grp.gridStyle }}">
+                <div style="overflow:hidden">
+                  <div style="display:flex;flex-direction:column;gap:var(--space-3);padding-top:var(--space-3)">
+                    <sc-for list="{{ grp.rows }}" as="av" hint-placeholder-count="3">
+                      <div class="card" style="{{ av.rowStyle }}">
+                        <div>
+                          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+                            <span class="{{ av.tagClass }}">{{ av.levelLabel }}</span>
+                            <sc-if value="{{ av.isHex }}" hint-placeholder-val="{{ false }}">
+                              <span class="tag tag-accent" title="Your patron allows only one hex each turn">Hex</span>
+                            </sc-if>
+                            <b>{{ av.name }}</b>
+                            <sc-if value="{{ av.hasActionIcon }}" hint-placeholder-val="{{ false }}">
+                              <img src="{{ av.actionIcon }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                            </sc-if>
+                            <sc-if value="{{ av.hasRangeActionIcon }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:3px">
+                                <img src="{{ av.actionIconLow }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                                <span style="font-size:11px;color:var(--color-neutral-400)">to</span>
+                                <img src="{{ av.actionIconHigh }}" alt="" style="height:14px;width:auto;vertical-align:middle">
+                              </span>
+                            </sc-if>
+                            <sc-if value="{{ av.hasDamage }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ av.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ av.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
+                            </sc-if>
+                          </div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ av.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                          <sc-if value="{{ av.meta }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}<sc-if value="{{ av.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ av.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></sc-if></div>
+                          </sc-if>
+                          <sc-if value="{{ av.metaEmptyHeightened }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-size:11px;padding-top:4px"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></div>
+                          </sc-if>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
+                          <sc-if value="{{ av.showCastToggle }}" hint-placeholder-val="{{ true }}">
+                            <button class="{{ av.castBtnClass }}" onClick="{{ av.toggleCast }}">{{ av.castLabel }}</button>
+                          </sc-if>
+                        </div>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ av.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
-                      <sc-if value="{{ av.meta }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px">{{ av.meta }}<sc-if value="{{ av.heightenNeedsDot }}" hint-placeholder-val="{{ false }}"> · </sc-if><sc-if value="{{ av.isHeightened }}" hint-placeholder-val="{{ false }}"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></sc-if></div>
-                      </sc-if>
-                      <sc-if value="{{ av.metaEmptyHeightened }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px;padding-top:4px"><span style="color:oklch(75% 0.1 300)">{{ av.heightenLabel }}</span></div>
-                      </sc-if>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
-                      <sc-if value="{{ av.showCastToggle }}" hint-placeholder-val="{{ true }}">
-                        <button class="{{ av.castBtnClass }}" onClick="{{ av.toggleCast }}">{{ av.castLabel }}</button>
-                      </sc-if>
-                    </div>
+                    </sc-for>
                   </div>
-                </sc-for>
+                </div>
               </div>
             </div>
           </sc-for>
@@ -1234,29 +1235,36 @@
           </sc-if>
           <sc-for list="{{ preparedAlchemyGroups }}" as="pg" hint-placeholder-count="2">
             <div style="margin-bottom:var(--space-3)">
-              <div style="font:500 14px var(--font-heading);padding:8px 0;border-bottom:1px solid var(--color-neutral-800);margin-bottom:var(--space-3)">{{ pg.label }}</div>
-              <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-                <sc-for list="{{ pg.rows }}" as="pa" hint-placeholder-count="3">
-                  <div class="card" style="{{ pa.rowStyle }}">
-                    <div>
-                      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
-                        <span class="tag tag-accent">{{ pa.levelLabel }}</span>
-                        <b>{{ pa.name }}</b>
-                        <sc-if value="{{ pa.hasDamage }}" hint-placeholder-val="{{ false }}">
-                          <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
-                        </sc-if>
+              <button onClick="{{ pg.toggle }}" style="display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:none;padding:8px 0;cursor:pointer;color:var(--color-text);border-bottom:1px solid var(--color-neutral-800)">
+                <i class="ph {{ pg.caretClass }}"></i>
+                <span style="font:500 14px var(--font-heading)">{{ pg.label }}</span>
+              </button>
+              <div style="{{ pg.gridStyle }}">
+                <div style="overflow:hidden">
+                  <div style="display:flex;flex-direction:column;gap:var(--space-3);padding-top:var(--space-3)">
+                    <sc-for list="{{ pg.rows }}" as="pa" hint-placeholder-count="3">
+                      <div class="card" style="{{ pa.rowStyle }}">
+                        <div>
+                          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+                            <span class="tag tag-accent">{{ pa.levelLabel }}</span>
+                            <b>{{ pa.name }}</b>
+                            <sc-if value="{{ pa.hasDamage }}" hint-placeholder-val="{{ false }}">
+                              <span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--color-neutral-300)">{{ pa.damage }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ pa.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button></span>
+                            </sc-if>
+                          </div>
+                          <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ pa.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                          <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
+                            <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span><sc-if value="{{ pa.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ pa.splashMeta }}</sc-if></div>
+                          </sc-if>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
+                          <button class="{{ pa.useBtnClass }}" onClick="{{ pa.toggleUsed }}">{{ pa.useLabel }}</button>
+                          <button class="btn btn-icon" title="Remove" onClick="{{ pa.remove }}"><i class="ph ph-trash"></i></button>
+                        </div>
                       </div>
-                      <div style="font-size:12px;color:var(--color-neutral-300);padding-top:var(--space-2)"><sc-for list="{{ pa.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
-                      <sc-if value="{{ pa.hasTier }}" hint-placeholder-val="{{ false }}">
-                        <div style="font-size:11px;color:var(--color-neutral-500);padding-top:4px"><span style="{{ pa.isUpgradedTier ? 'color:oklch(75% 0.1 300)' : '' }}">{{ pa.tierMeta }}</span><sc-if value="{{ pa.hasSplash }}" hint-placeholder-val="{{ false }}"> · {{ pa.splashMeta }}</sc-if></div>
-                      </sc-if>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:var(--space-2);flex:none">
-                      <button class="{{ pa.useBtnClass }}" onClick="{{ pa.toggleUsed }}">{{ pa.useLabel }}</button>
-                      <button class="btn btn-icon" title="Remove" onClick="{{ pa.remove }}"><i class="ph ph-trash"></i></button>
-                    </div>
+                    </sc-for>
                   </div>
-                </sc-for>
+                </div>
               </div>
             </div>
           </sc-for>
@@ -2629,6 +2637,8 @@ class Component extends DCLogic {
     openActionCats: {},
     openSkillKeys: {},
     openSpellLevels: {},
+    openPreparedGroups: {},
+    openPreparedAlchemyCats: {},
     expandedWeaponActivations: {},
     expandedInventoryActivations: {},
     // Add Spells browser: which rank tab is showing, the spell whose detail is on the right, and
@@ -3667,6 +3677,14 @@ class Component extends DCLogic {
   toggleFormulaCat = (charId, key) => this.setState(s => {
     const forChar = s.openFormulaCats[charId] || {};
     return { openFormulaCats: { ...s.openFormulaCats, [charId]: { ...forChar, [key]: !forChar[key] } } };
+  });
+  togglePreparedGroup = (charId, key) => this.setState(s => {
+    const forChar = s.openPreparedGroups[charId] || {};
+    return { openPreparedGroups: { ...s.openPreparedGroups, [charId]: { ...forChar, [key]: !forChar[key] } } };
+  });
+  togglePreparedAlchemyCat = (charId, key) => this.setState(s => {
+    const forChar = s.openPreparedAlchemyCats[charId] || {};
+    return { openPreparedAlchemyCats: { ...s.openPreparedAlchemyCats, [charId]: { ...forChar, [key]: !forChar[key] } } };
   });
 
   addCondition = (key) => this.updateActiveChar(c => {
@@ -4710,14 +4728,20 @@ class Component extends DCLogic {
     if (availableSpellRowsFull.some(r => r.isFontEntry)) AVAILABLE_GROUP_DEFS.push({ key: 'font', label: `${char.divineFont === 'heal' ? 'Healing Font' : 'Harmful Font'} – Rank ${fontRank}` });
     Array.from(new Set(availableSpellRowsFull.filter(r => !r.cantrip && !r.focus && !r.isFontEntry).map(r => r.level))).sort((a, b) => a - b)
       .forEach(lvl => AVAILABLE_GROUP_DEFS.push({ key: 'lvl' + lvl, label: 'Level ' + lvl + ' Spells', level: lvl }));
+    // Collapsed by default, like the Spellbook card: a group with no entry in the map is closed.
+    const openPreparedGroupsForChar = s.openPreparedGroups[char.id] || {};
     const availableSpellGroups = AVAILABLE_GROUP_DEFS.map(gd => {
       const rows = availableSpellRowsFull.filter(r => gd.key === 'cantrips' ? isPlainCantrip(r) : gd.key === 'focus' ? r.focus : gd.key === 'font' ? r.isFontEntry : (!r.cantrip && !r.focus && !r.isFontEntry && r.level === gd.level));
       rows.sort((a, b) => a.name.localeCompare(b.name));
+      const isOpen = !!openPreparedGroupsForChar[gd.key];
       return {
-        key: gd.key, label: gd.label, isFocusGroup: gd.key === 'focus', isFontGroup: gd.key === 'font', isNotFocusGroup: gd.key !== 'focus' && gd.key !== 'font',
+        key: gd.key, label: gd.label, isFocusGroup: gd.key === 'focus', isFontGroup: gd.key === 'font',
         focusPips: gd.key === 'focus' ? focusPips : [],
         fontPips: gd.key === 'font' ? fontPips : [],
-        rows,
+        rows, isOpen,
+        toggle: () => this.togglePreparedGroup(char.id, gd.key),
+        caretClass: isOpen ? 'ph-caret-down' : 'ph-caret-right',
+        gridStyle: `display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:${isOpen ? '1fr' : '0fr'}`,
       };
     });
     const maxRank = maxSpellRankForLevel(char.level);
@@ -4951,10 +4975,18 @@ class Component extends DCLogic {
       toggleUsed: () => this.toggleAlchemyUsed(i),
       remove: () => this.removeFromAlchemyBatch(i),
     };});
-    const preparedAlchemyGroups = FORMULA_CATEGORY_DEFS.filter(gd => preparedAlchemyRowsFull.some(r => r.category === gd.key)).map(gd => ({
-      key: gd.key, label: gd.label,
-      rows: preparedAlchemyRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name)),
-    }));
+    const openPreparedAlchemyCatsForChar = s.openPreparedAlchemyCats[char.id] || {};
+    const preparedAlchemyGroups = FORMULA_CATEGORY_DEFS.filter(gd => preparedAlchemyRowsFull.some(r => r.category === gd.key)).map(gd => {
+      const isOpen = !!openPreparedAlchemyCatsForChar[gd.key];
+      return {
+        key: gd.key, label: gd.label,
+        rows: preparedAlchemyRowsFull.filter(r => r.category === gd.key).sort((a, b) => a.name.localeCompare(b.name)),
+        isOpen,
+        toggle: () => this.togglePreparedAlchemyCat(char.id, gd.key),
+        caretClass: isOpen ? 'ph-caret-down' : 'ph-caret-right',
+        gridStyle: `display:grid;transition:grid-template-rows 0.25s ease;grid-template-rows:${isOpen ? '1fr' : '0fr'}`,
+      };
+    });
     const preparedAlchemyCount = char.preparedAlchemy.length;
     const preparedAlchemyUsedCount = char.preparedAlchemy.filter(it => it.used).length;
     const preparedAlchemyRemaining = Math.max(0, preparedAlchemyCount - preparedAlchemyUsedCount);
