@@ -1403,7 +1403,7 @@
                           <div style="position:absolute;bottom:110%;left:0;z-index:10;background:var(--color-neutral-900);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:var(--space-3);width:max-content;max-width:none;box-shadow:var(--shadow-lg);font-size:12px;color:var(--color-neutral-200);white-space:nowrap">{{ w.atkBreakdown }}</div>
                         </sc-if>
                       </div></td>
-                      <td><div style="display:flex;align-items:center;gap:6px;position:relative" onMouseEnter="{{ w.onDmgEnter }}" onMouseLeave="{{ w.onDmgLeave }}">{{ w.damageDice }}<button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ w.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button>
+                      <td><div style="display:flex;align-items:center;gap:6px;position:relative" onMouseEnter="{{ w.onDmgEnter }}" onMouseLeave="{{ w.onDmgLeave }}">{{ w.damageDice }}<sc-if value="{{ w.hasRuneDamage }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:var(--color-accent-300)">{{ w.runeDamageLabel }}</span></sc-if><button class="btn btn-icon" style="width:18px;height:18px;padding:0" title="Roll Damage" onClick="{{ w.rollDmg }}"><img src="assets/d20-icon.svg" alt="Roll" style="width:100%;height:100%;vertical-align:middle;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></button>
                         <sc-if value="{{ w.dmgHovered }}" hint-placeholder-val="{{ false }}">
                           <div style="position:absolute;bottom:110%;left:0;z-index:10;background:var(--color-neutral-900);border:1px solid var(--color-neutral-700);border-radius:var(--radius-sm);padding:var(--space-3);width:max-content;max-width:none;box-shadow:var(--shadow-lg);font-size:12px;color:var(--color-neutral-200);white-space:nowrap">{{ w.dmgBreakdown }}</div>
                         </sc-if>
@@ -4453,9 +4453,17 @@ class Component extends DCLogic {
       const damageDice = (diceCountMatch && strikingRune.extraDice > 0)
         ? `${Number(diceCountMatch[1]) + strikingRune.extraDice}d${diceCountMatch[2]}${diceCountMatch[3]}`
         : diceStr;
-      const dmgBreakdown = dmgAbMod !== 0
-        ? `${damageDice} ${dmgAbMod >= 0 ? '+' : '-'} ${Math.abs(dmgAbMod)} (${dmgAbLabel})`
-        : damageDice;
+      // Property runes that add damage to every damaging hit (Flaming's 1d6 fire and the like) are
+      // rolled with the weapon; the ones that only apply sometimes, or as persistent damage, are
+      // listed in the breakdown as a reminder instead of being added.
+      const runeDamageParts = propertyRuneDefs.filter(r => r.bonusDamage);
+      const runeDamageLabel = runeDamageParts.map(r => '+' + r.bonusDamage).join(' ');
+      const rollDamageDice = [damageDice, ...runeDamageParts.map(r => r.bonusDamage.split(' ')[0])].join('+');
+      const dmgBreakdown = [
+        dmgAbMod !== 0 ? `${damageDice} ${dmgAbMod >= 0 ? '+' : '-'} ${Math.abs(dmgAbMod)} (${dmgAbLabel})` : damageDice,
+        ...runeDamageParts.map(r => `+ ${r.bonusDamage} (${r.name})`),
+        ...propertyRuneDefs.filter(r => r.damageNote).map(r => `· ${r.name}: ${r.damageNote}`),
+      ].join(' ');
       const propertyRuneDefs = (w.propertyRunes || []).map(k => data.WEAPON_PROPERTY_RUNES.find(r => r.key === k)).filter(Boolean);
       const runeSummary = [potencyRune.value !== 'none' ? potencyRune.value : null, strikingRune.value !== 'none' ? strikingRune.label : null]
         .concat(propertyRuneDefs.map(r => r.name)).filter(Boolean).join(' · ') || 'No runes';
@@ -4478,7 +4486,8 @@ class Component extends DCLogic {
         desc: weaponDesc, hasDesc: !!weaponDesc, nameHovered: s.hoveredWeaponNameKey === i,
         onNameEnter: () => this.setHoverWeaponName(i), onNameLeave: () => this.setHoverWeaponName(null),
         roll: () => this.rollCheck('Attack: ' + w.name, atk),
-        rollDmg: () => this.rollDamage('Damage: ' + w.name, damageDice, dmgAbMod),
+        rollDmg: () => this.rollDamage('Damage: ' + w.name, rollDamageDice, dmgAbMod),
+        runeDamageLabel, hasRuneDamage: !!runeDamageLabel,
         remove: () => this.removeWeapon(i),
         runeSummary, editRunes: () => this.openRuneModal(i),
         hasActivations: activationRows.length > 0, activations: activationRows, activationsExpanded,
