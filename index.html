@@ -4443,6 +4443,7 @@ class Component extends DCLogic {
       const profBonus = data.calcProfBonus(wRank, level);
       const potencyRune = data.POTENCY_RUNES.find(r => r.value === (w.potencyRune || 'none')) || data.POTENCY_RUNES[0];
       const strikingRune = data.STRIKING_RUNES.find(r => r.value === (w.strikingRune || 'none')) || data.STRIKING_RUNES[0];
+      const propertyRuneDefs = (w.propertyRunes || []).map(k => data.WEAPON_PROPERTY_RUNES.find(r => r.key === k)).filter(Boolean);
       const itemBonus = potencyRune.bonus;
       const atk = abMod + profBonus + itemBonus;
       const atkBreakdown = `${data.fmtMod(abMod)} (${abLabel}) ${profBonus >= 0 ? '+' : '-'} ${Math.abs(profBonus)} (Proficiency) ${itemBonus >= 0 ? '+' : '-'} ${Math.abs(itemBonus)} (Item) = ${data.fmtMod(atk)}`;
@@ -4464,7 +4465,6 @@ class Component extends DCLogic {
         ...runeDamageParts.map(r => `+ ${r.bonusDamage} (${r.name})`),
         ...propertyRuneDefs.filter(r => r.damageNote).map(r => `· ${r.name}: ${r.damageNote}`),
       ].join(' ');
-      const propertyRuneDefs = (w.propertyRunes || []).map(k => data.WEAPON_PROPERTY_RUNES.find(r => r.key === k)).filter(Boolean);
       const runeSummary = [potencyRune.value !== 'none' ? potencyRune.value : null, strikingRune.value !== 'none' ? strikingRune.label : null]
         .concat(propertyRuneDefs.map(r => r.name)).filter(Boolean).join(' · ') || 'No runes';
       const traitList = (w.traits || '').split(',').map(t => t.trim()).filter(Boolean).map((t, ti) => {
