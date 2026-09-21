@@ -1340,10 +1340,14 @@
             <div class="card" style="padding:var(--space-4)">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
                 <span style="font:500 13px var(--font-heading);text-transform:uppercase;letter-spacing:.05em;color:var(--color-accent-300)">Equipped Armor</span>
-                <button class="btn btn-icon" title="Choose armor" onClick="{{ openArmorModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+<div style="display:flex;align-items:center;gap:4px">
+                  <button class="btn btn-icon" title="Armor runes" onClick="{{ openArmorRuneModal }}" style="width:28px;height:28px;padding:0"><i class="ph ph-diamonds-four" style="{{ armorRuneIconStyle }}"></i></button>
+                  <button class="btn btn-icon" title="Choose armor" onClick="{{ openArmorModal }}" style="width:28px;height:28px;padding:0"><i class="ph ph-gear-six" style="font-size:16px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+                </div>
               </div>
               <div style="font:500 15px var(--font-heading)">{{ equippedArmorName }}</div>
               <div style="font-size:12px;color:var(--color-neutral-300);margin-top:4px">{{ equippedArmorMeta }}</div>
+              <div style="font-size:11px;color:var(--color-accent-300);margin-top:2px">{{ armorRuneSummary }}</div>
             </div>
             <div class="card" style="padding:var(--space-4)">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-3)">
@@ -1352,10 +1356,14 @@
                   <sc-if value="{{ shieldBroken }}" hint-placeholder-val="{{ false }}">
                     <span class="tag" style="background:oklch(30% 0.1 25);color:oklch(80% 0.16 25)">Broken</span>
                   </sc-if>
-                  <button class="btn btn-icon" title="Choose shield" onClick="{{ openShieldModal }}" style="width:32px;height:32px;padding:0"><i class="ph ph-gear-six" style="font-size:20px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+  <div style="display:flex;align-items:center;gap:4px">
+                  <button class="btn btn-icon" title="Shield runes" onClick="{{ openShieldRuneModal }}" style="width:28px;height:28px;padding:0"><i class="ph ph-diamonds-four" style="{{ shieldRuneIconStyle }}"></i></button>
+                  <button class="btn btn-icon" title="Choose shield" onClick="{{ openShieldModal }}" style="width:28px;height:28px;padding:0"><i class="ph ph-gear-six" style="font-size:16px;display:inline-block;transition:transform 0.5s ease" style-hover="transform:rotate(360deg)"></i></button>
+                </div>
                 </div>
               </div>
               <div style="font:500 15px var(--font-heading)">{{ equippedShieldName }}</div>
+              <div style="font-size:11px;color:var(--color-accent-300)">{{ shieldRuneSummary }}</div>
               <sc-if value="{{ hasShield }}" hint-placeholder-val="{{ false }}">
                 <div style="font-size:12px;color:var(--color-neutral-300);margin-top:8px">AC +{{ shieldAcBonus }} (raised) · Hardness {{ shieldHardness }} · BT {{ shieldBt }}</div>
                 <div style="font:500 15px var(--font-heading);margin:6px 0">Shield HP {{ shieldHpCurrent }} / {{ shieldHpMax }}</div>
@@ -2218,6 +2226,141 @@
     </div>
   </sc-if>
 
+
+  <sc-if value="{{ showArmorRuneModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeArmorRuneModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
+        <div class="dialog-title">Armor Runes</div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ armorRuneTabs }}" as="tb" hint-placeholder-count="3">
+                <button class="{{ tb.btnClass }}" style="padding:4px 10px;font-size:12px" onClick="{{ tb.select }}">{{ tb.label }}</button>
+              </sc-for>
+            </div>
+            <div style="font-size:11px;color:var(--color-neutral-400)">{{ armorRuneSlotLabel }}</div>
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search runes…" value="{{ armorRuneSearch }}" onChange="{{ setArmorRuneSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">Level</span>
+                <span style="width:80px;flex:none;text-align:right">Price</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoArmorRuneRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No runes match.</div>
+                </sc-if>
+                <sc-for list="{{ armorRuneRows }}" as="rr" hint-placeholder-count="6">
+                  <button style="{{ rr.rowStyle }}" data-armor-rune-row="{{ rr.key }}" onClick="{{ rr.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ rr.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ rr.levelLabel }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-size:12px;color:var(--color-neutral-400)">{{ rr.price }}</span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ rr.etched }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Etched" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ armorRuneDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ armorRuneDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ armorRuneDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ armorRuneDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ armorRuneDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ armorRuneDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ armorRuneDetail.addBtnClass }}" style="{{ armorRuneDetail.addBtnStyle }}" onClick="{{ toggleSelectedArmorRune }}"><i class="ph {{ armorRuneDetail.addIconClass }}"></i>&nbsp;{{ armorRuneDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ armorRuneDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a rune to see its details.</div>
+            </sc-if>
+          </div>
+
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeArmorRuneModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showShieldRuneModal }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" onClick="{{ closeShieldRuneModal }}">
+      <div class="dialog" onClick="{{ stopClickPropagation }}" style="width:min(1000px,100%)">
+        <div class="dialog-title">Shield Runes</div>
+        <div class="dialog-body" style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:stretch;opacity:1">
+
+          <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;gap:var(--space-3)">
+            <input class="input" type="text" style="width:100%;box-sizing:border-box" placeholder="Search runes…" value="{{ shieldRuneSearch }}" onChange="{{ setShieldRuneSearch }}">
+            <div style="height:48vh;overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm)">
+              <div style="position:sticky;top:0;z-index:1;background:var(--color-surface);display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-neutral-800);font:500 11px var(--font-heading);text-transform:uppercase;letter-spacing:.04em;color:var(--color-neutral-400)">
+                <span style="flex:1;min-width:0">Name</span>
+                <span style="width:48px;flex:none;text-align:center">Level</span>
+                <span style="width:80px;flex:none;text-align:right">Price</span>
+                <span style="width:24px;flex:none"></span>
+              </div>
+              <div style="padding:4px">
+                <sc-if value="{{ hasNoShieldRuneRows }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:12px;font-size:12px;color:var(--color-neutral-500);text-align:center">No runes match.</div>
+                </sc-if>
+                <sc-for list="{{ shieldRuneRows }}" as="rr" hint-placeholder-count="6">
+                  <button style="{{ rr.rowStyle }}" data-shield-rune-row="{{ rr.key }}" onClick="{{ rr.select }}">
+                    <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ rr.name }}</span>
+                    <span style="width:48px;flex:none;text-align:center;font-size:12px;color:var(--color-neutral-400)">{{ rr.levelLabel }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-size:12px;color:var(--color-neutral-400)">{{ rr.price }}</span>
+                    <span style="width:24px;flex:none;display:inline-flex;justify-content:flex-end;align-items:center">
+                      <sc-if value="{{ rr.etched }}" hint-placeholder-val="{{ false }}">
+                        <i class="ph ph-check-circle" title="Etched" style="font-size:15px;color:oklch(70% 0.13 150)"></i>
+                      </sc-if>
+                    </span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1 1 380px;min-width:300px;display:flex;flex-direction:column">
+            <sc-if value="{{ shieldRuneDetail.hasSelection }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;flex-direction:column;gap:var(--space-3);overflow-y:auto;overscroll-behavior:contain;max-height:56vh">
+                <span style="font:500 28px var(--font-heading)">{{ shieldRuneDetail.name }}</span>
+                <div style="display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-4)">
+                  <sc-for list="{{ shieldRuneDetail.facts }}" as="ft" hint-placeholder-count="4">
+                    <div style="font-size:12px"><span style="color:var(--color-neutral-400)">{{ ft.label }}:</span> <b>{{ ft.value }}</b></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:13px;color:var(--color-neutral-200);line-height:1.5"><sc-for list="{{ shieldRuneDetail.descLines }}" as="dl" hint-placeholder-count="1"><div><b>{{ dl.label }}</b>{{ dl.rest }}</div></sc-for></div>
+                <sc-if value="{{ shieldRuneDetail.bookName }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:var(--color-neutral-500);font-style:italic;margin-top:auto">Source: {{ shieldRuneDetail.bookName }}</div>
+                </sc-if>
+              </div>
+              <button class="{{ shieldRuneDetail.addBtnClass }}" style="{{ shieldRuneDetail.addBtnStyle }}" onClick="{{ toggleSelectedShieldRune }}"><i class="ph {{ shieldRuneDetail.addIconClass }}"></i>&nbsp;{{ shieldRuneDetail.addLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ shieldRuneDetail.hasNoSelection }}" hint-placeholder-val="{{ true }}">
+              <div class="card" style="padding:var(--space-4);flex:1;display:flex;align-items:center;justify-content:center;min-height:200px;color:var(--color-neutral-500);font-size:13px;text-align:center">Select a rune to see its details.</div>
+            </sc-if>
+          </div>
+
+        </div>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" onClick="{{ closeShieldRuneModal }}">Done</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <sc-if value="{{ showXPModal }}" hint-placeholder-val="{{ false }}">
     <div class="dialog-backdrop" onClick="{{ closeXPModal }}">
       <div class="dialog" onClick="{{ stopClickPropagation }}">
@@ -2801,6 +2944,8 @@ class Component extends DCLogic {
     runeTab: 'potency', runeSelected: null, runeSearch: '',
     showArmorModal: false, armorTab: null, armorSelected: null, armorSearch: '',
     showShieldModal: false, shieldSelected: null, shieldSearch: '',
+    showArmorRuneModal: false, armorRuneTab: 'potency', armorRuneSelected: null, armorRuneSearch: '',
+    showShieldRuneModal: false, shieldRuneSelected: null, shieldRuneSearch: '',
     openFormulaCats: {},
     editingSkills: false,
     editingSaves: false,
@@ -3181,7 +3326,11 @@ class Component extends DCLogic {
               ? { selected: s.armorSelected, order: this._armorOrder, attr: 'data-armor-row', key: 'armorSelected' }
               : s.showShieldModal
                 ? { selected: s.shieldSelected, order: this._shieldOrder, attr: 'data-shield-row', key: 'shieldSelected' }
-                : null;
+                : s.showArmorRuneModal
+                  ? { selected: s.armorRuneSelected, order: this._armorRuneOrder, attr: 'data-armor-rune-row', key: 'armorRuneSelected' }
+                  : s.showShieldRuneModal
+                    ? { selected: s.shieldRuneSelected, order: this._shieldRuneOrder, attr: 'data-shield-rune-row', key: 'shieldRuneSelected' }
+                    : null;
     if (!browser || !browser.selected) return;
     const t = e.target;
     if (t && (t.tagName === 'SELECT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -3584,6 +3733,47 @@ class Component extends DCLogic {
     this.setShield(this.currentChar().shieldKey === name ? '' : name);
   };
 
+  // Armor and shield rune browsers, in the shape of the weapon one.
+  openArmorRuneModal = () => this.setState({ showArmorRuneModal: true, armorRuneTab: 'potency', armorRuneSelected: null, armorRuneSearch: '' });
+  closeArmorRuneModal = () => this.setState({ showArmorRuneModal: false });
+  setArmorRuneTab = (key) => this.setState({ armorRuneTab: key, armorRuneSelected: null });
+  selectArmorRune = (key) => this.setState({ armorRuneSelected: key });
+  setArmorRuneSearchField = (e) => this.setState({ armorRuneSearch: e.target.value });
+  // Lowering the potency rune also lowers how many property runes fit, so the extras come off.
+  setArmorPotencyRune = (val) => this.updateActiveChar(c => {
+    const slots = (this.state.data.ARMOR_POTENCY_RUNES.find(r => r.value === val) || {}).bonus || 0;
+    return { ...c, armorPotencyRune: val, armorPropertyRunes: (c.armorPropertyRunes || []).slice(0, slots) };
+  });
+  toggleSelectedArmorRune = () => {
+    const { armorRuneTab: tab, armorRuneSelected: key } = this.state;
+    if (!key) return;
+    const c = this.currentChar();
+    if (tab === 'potency') return this.setArmorPotencyRune((c.armorPotencyRune || 'none') === key ? 'none' : key);
+    if (tab === 'resilient') return this.updateActiveChar(ch => ({ ...ch, armorResilientRune: (ch.armorResilientRune || 'none') === key ? 'none' : key }));
+    this.updateActiveChar(ch => {
+      const etched = ch.armorPropertyRunes || [];
+      if (etched.includes(key)) return { ...ch, armorPropertyRunes: etched.filter(k => k !== key) };
+      const slots = (this.state.data.ARMOR_POTENCY_RUNES.find(r => r.value === (ch.armorPotencyRune || 'none')) || {}).bonus || 0;
+      return etched.length >= slots ? ch : { ...ch, armorPropertyRunes: [...etched, key] };
+    });
+  };
+  openShieldRuneModal = () => this.setState({ showShieldRuneModal: true, shieldRuneSelected: null, shieldRuneSearch: '' });
+  closeShieldRuneModal = () => this.setState({ showShieldRuneModal: false });
+  selectShieldRune = (key) => this.setState({ shieldRuneSelected: key });
+  setShieldRuneSearchField = (e) => this.setState({ shieldRuneSearch: e.target.value });
+  // A reinforcing rune raises the shield's maximum HP, so top up the tracked HP by the same amount
+  // rather than leaving the shield looking damaged (and clamp it when the rune comes off).
+  toggleSelectedShieldRune = () => {
+    const key = this.state.shieldRuneSelected; if (!key) return;
+    this.updateActiveChar(c => {
+      const next = (c.shieldRune || 'none') === key ? 'none' : key;
+      const before = this.shieldMaxFor(c);
+      const after = this.shieldMaxFor({ ...c, shieldRune: next });
+      const current = c.shieldHpCurrent == null ? before : c.shieldHpCurrent;
+      return { ...c, shieldRune: next, shieldHpCurrent: Math.max(0, Math.min(after, current + (after - before))) };
+    });
+  };
+
   setACOverride = (val) => this.updateActiveChar(c => ({ ...c, acOverride: val }));
 
   setHPAdjustAmount = (val) => this.setState({ hpAdjustAmount: val });
@@ -3593,9 +3783,12 @@ class Component extends DCLogic {
   damageHP = () => { const amt = Number(this.state.hpAdjustAmount) || 0; this.updateActiveChar(c => ({ ...c, hpCurrent: Math.max(0, c.hpCurrent - amt) })); this.setState({ hpAdjustAmount: '' }); };
   fullHealHP = () => this.updateActiveChar(c => ({ ...c, hpCurrent: this.computeHpMax(c) }));
 
+  // A shield's maximum HP includes its reinforcing rune, capped by that rune's own maximum.
   shieldMaxFor = (c) => {
     const shield = this.state.data.SHIELDS.find(sh => sh.name === c.shieldKey);
-    return shield ? shield.hp : 0;
+    if (!shield) return 0;
+    const rune = this.state.data.SHIELD_RUNES.find(r => r.value === (c.shieldRune || 'none'));
+    return rune && rune.hpBonus ? Math.min(shield.hp + rune.hpBonus, rune.maxHp) : shield.hp;
   };
   setShieldHPField = (val) => this.updateActiveChar(c => ({ ...c, shieldHpCurrent: Math.max(0, Math.min(this.shieldMaxFor(c), Number(val) || 0)) }));
   setShieldAdjustAmount = (val) => this.setState({ shieldAdjustAmount: val });
@@ -4429,22 +4622,32 @@ class Component extends DCLogic {
       : acCategory === 'Light' ? (allArmorRank || findRank(defenseLines, 'light armor'))
       : acCategory === 'Medium' ? (allArmorRank || findRank(defenseLines, 'medium armor'))
       : (allArmorRank || findRank(defenseLines, 'heavy armor'));
-    const acAuto = 10 + Math.min(mods.dex, armor ? armor.dexCap : 99) + (armor ? armor.acBonus : 0) + data.calcProfBonus(acProfRank, level);
+    // An armor potency rune is an item bonus to AC; a resilient rune an item bonus to saves.
+    const armorPotency = data.ARMOR_POTENCY_RUNES.find(r => r.value === (char.armorPotencyRune || 'none')) || data.ARMOR_POTENCY_RUNES[0];
+    const resilientRune = data.RESILIENT_RUNES.find(r => r.value === (char.armorResilientRune || 'none')) || data.RESILIENT_RUNES[0];
+    const armorRuneAcBonus = armor ? armorPotency.bonus : 0;
+    const acAuto = 10 + Math.min(mods.dex, armor ? armor.dexCap : 99) + (armor ? armor.acBonus : 0) + armorRuneAcBonus + data.calcProfBonus(acProfRank, level);
     const ac = (char.acOverride !== '' && char.acOverride != null && !isNaN(Number(char.acOverride))) ? Number(char.acOverride) : acAuto;
 
     // Shield HP/BT/Hardness (Rules p.2180): while raised, a shield adds its circumstance
     // bonus to AC; Shield Block reduces damage by Hardness, with the remainder split between
     // wielder and shield. A shield at or below its Broken Threshold is broken and unusable.
     const shield = data.SHIELDS.find(sh => sh.name === char.shieldKey) || null;
-    const shieldHpMax = shield ? shield.hp : 0;
+    // A reinforcing rune raises Hardness, HP and BT, each capped by the rune's own maximum.
+    const shieldRune = data.SHIELD_RUNES.find(r => r.value === (char.shieldRune || 'none')) || data.SHIELD_RUNES[0];
+    const capped = (base, bonus, max) => (bonus ? Math.min(base + bonus, max) : base);
+    const shieldHardness = shield ? capped(shield.hardness, shieldRune.hardnessBonus, shieldRune.maxHardness) : 0;
+    const shieldBtValue = shield ? capped(shield.bt, shieldRune.btBonus, shieldRune.maxBt) : 0;
+    const shieldHpMax = shield ? capped(shield.hp, shieldRune.hpBonus, shieldRune.maxHp) : 0;
     const shieldHpCurrent = shield ? Math.max(0, Math.min(shieldHpMax, char.shieldHpCurrent == null ? shieldHpMax : char.shieldHpCurrent)) : 0;
-    const shieldBroken = !!shield && shieldHpCurrent <= shield.bt;
+    const shieldBroken = !!shield && shieldHpCurrent <= shieldBtValue;
 
     const perceptionMod = mods.wis + data.calcProfBonus(char.perceptionRank, level);
     const saveDefs = [{ key: 'fort', label: 'Fortitude', ability: 'con' }, { key: 'ref', label: 'Reflex', ability: 'dex' }, { key: 'will', label: 'Will', ability: 'wis' }];
     const saveRows = saveDefs.map(sd => {
       const rank = char.saveRanks[sd.key];
-      const mod = mods[sd.ability] + data.calcProfBonus(rank, level);
+      const saveItemBonus = armor ? resilientRune.saveBonus : 0;
+      const mod = mods[sd.ability] + data.calcProfBonus(rank, level) + saveItemBonus;
       return { label: sd.label, rank, rankName: data.RANK_NAMES[rank], badgeLabel: data.RANK_NAMES[rank][0], badgeStyle: badgeStyleFor(rank), mod: data.fmtMod(mod), roll: () => this.rollCheck(sd.label, mod), setRank: (e) => this.setSaveRank(sd.key, e.target.value) };
     });
     const keyAb = char.classKeyAbility || (cls ? cls.keyAbility[0] : 'str');
@@ -4776,6 +4979,83 @@ class Component extends DCLogic {
       addBtnClass: shieldEquipped ? 'btn btn-secondary' : 'btn btn-primary',
       addBtnStyle: 'margin-top:var(--space-3)' + (shieldEquipped ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : ''),
     };
+    // ---- Armor and shield rune browsers (modals) --------------------------------------------
+    const armorPropRunes = char.armorPropertyRunes || [];
+    const armorRuneSlots = armorPotency.bonus;
+    const ARMOR_RUNE_TAB_DEFS = [
+      { key: 'potency', label: 'Potency', runes: data.ARMOR_POTENCY_RUNES.filter(r => r.value !== 'none').map(r => ({ ...r, key: r.value, etched: r.value === (char.armorPotencyRune || 'none') })) },
+      { key: 'resilient', label: 'Resilient', runes: data.RESILIENT_RUNES.filter(r => r.value !== 'none').map(r => ({ ...r, key: r.value, etched: r.value === (char.armorResilientRune || 'none') })) },
+      { key: 'property', label: 'Property', runes: data.ARMOR_PROPERTY_RUNES.map(r => ({ ...r, etched: armorPropRunes.includes(r.key) })) },
+    ];
+    const armorRuneTab = ARMOR_RUNE_TAB_DEFS.some(d => d.key === s.armorRuneTab) ? s.armorRuneTab : 'potency';
+    const armorRuneTabs = ARMOR_RUNE_TAB_DEFS.map(d => ({
+      key: d.key, label: d.label,
+      btnClass: d.key === armorRuneTab ? 'btn btn-primary' : 'btn btn-ghost',
+      select: () => this.setArmorRuneTab(d.key),
+    }));
+    const armorRuneQuery = (s.armorRuneSearch || '').trim().toLowerCase();
+    const armorRuneTabRunes = (ARMOR_RUNE_TAB_DEFS.find(d => d.key === armorRuneTab) || {}).runes || [];
+    const armorRuneRows = armorRuneTabRunes
+      .filter(r => !armorRuneQuery || r.name.toLowerCase().includes(armorRuneQuery))
+      .map(r => ({
+        key: r.key, name: r.name, levelLabel: String(r.level), price: r.price, etched: r.etched,
+        select: () => this.selectArmorRune(r.key),
+        rowStyle: rowStyleFor(s.armorRuneSelected === r.key),
+      }));
+    this._armorRuneOrder = armorRuneRows.map(r => r.key);
+    const armorRuneDef = s.armorRuneSelected ? armorRuneTabRunes.find(r => r.key === s.armorRuneSelected) : null;
+    const armorRuneEtched = !!(armorRuneDef && armorRuneDef.etched);
+    const armorSlotsFull = armorRuneTab === 'property' && !armorRuneEtched && armorPropRunes.length >= armorRuneSlots;
+    const runeFacts = (r) => [
+      { label: 'Level', value: String(r.level || '') },
+      { label: 'Price', value: r.price || '' },
+      { label: 'Usage', value: r.usage || '' },
+      { label: 'Traits', value: r.traits || '' },
+      { label: 'Rarity', value: r.rarity && r.rarity !== 'common' ? (r.rarity[0].toUpperCase() + r.rarity.slice(1)) : '' },
+    ].filter(f => f.value);
+    const runeButton = (etched, full, label) => ({
+      addLabel: etched ? 'Remove Rune' : full ? (armorRuneSlots === 0 ? 'Needs a potency rune' : 'No free property rune slots') : label,
+      addIconClass: etched ? 'ph-trash' : 'ph-plus',
+      addBtnClass: etched ? 'btn btn-secondary' : 'btn btn-primary',
+      addBtnStyle: 'margin-top:var(--space-3)' + (etched ? ';color:oklch(65% 0.16 25);border-color:oklch(65% 0.16 25)' : full ? ';opacity:0.5;cursor:not-allowed' : ''),
+    });
+    const armorRuneDetail = {
+      hasSelection: !!armorRuneDef, hasNoSelection: !armorRuneDef,
+      name: armorRuneDef ? armorRuneDef.name : '',
+      descLines: descLines(armorRuneDef ? armorRuneDef.desc : ''),
+      facts: armorRuneDef ? runeFacts(armorRuneDef) : [],
+      bookName: armorRuneDef ? ((data.BOOKS.find(b => b.key === armorRuneDef.book) || {}).name || '') : '',
+      ...runeButton(armorRuneEtched, armorSlotsFull, armorRuneTab === 'property' ? 'Etch Rune' : 'Apply Rune'),
+    };
+    const armorRuneSlotLabel = armorRuneSlots
+      ? `Property runes: ${armorPropRunes.length} / ${armorRuneSlots}`
+      : 'Property runes need a potency rune first';
+    const shieldRuneQuery = (s.shieldRuneSearch || '').trim().toLowerCase();
+    const shieldRuneRows = data.SHIELD_RUNES.filter(r => r.value !== 'none')
+      .filter(r => !shieldRuneQuery || r.name.toLowerCase().includes(shieldRuneQuery))
+      .map(r => ({
+        key: r.value, name: r.name, levelLabel: String(r.level), price: r.price, etched: r.value === (char.shieldRune || 'none'),
+        select: () => this.selectShieldRune(r.value),
+        rowStyle: rowStyleFor(s.shieldRuneSelected === r.value),
+      }));
+    this._shieldRuneOrder = shieldRuneRows.map(r => r.key);
+    const shieldRuneDef = s.shieldRuneSelected ? data.SHIELD_RUNES.find(r => r.value === s.shieldRuneSelected) : null;
+    const shieldRuneEtched = !!(shieldRuneDef && shieldRuneDef.value === (char.shieldRune || 'none'));
+    const shieldRuneDetail = {
+      hasSelection: !!shieldRuneDef, hasNoSelection: !shieldRuneDef,
+      name: shieldRuneDef ? shieldRuneDef.name : '',
+      descLines: descLines(shieldRuneDef ? shieldRuneDef.desc : ''),
+      facts: shieldRuneDef ? runeFacts(shieldRuneDef) : [],
+      bookName: shieldRuneDef ? ((data.BOOKS.find(b => b.key === shieldRuneDef.book) || {}).name || '') : '',
+      ...runeButton(shieldRuneEtched, false, 'Apply Rune'),
+    };
+    const armorRuneSummary = [
+      armorPotency.value !== 'none' ? armorPotency.value : null,
+      resilientRune.value !== 'none' ? resilientRune.label : null,
+      ...armorPropRunes.map(k => (data.ARMOR_PROPERTY_RUNES.find(r => r.key === k) || {}).name).filter(Boolean),
+    ].filter(Boolean).join(' · ') || 'No runes';
+    const shieldRuneSummary = shieldRune.value !== 'none' ? shieldRune.name : 'No runes';
+
     // What the Equipped Armor card shows in place of the old dropdown.
     const equippedArmor = char.armorKey ? armorLib.find(a => a.name === char.armorKey) : null;
     const equippedArmorName = equippedArmor ? equippedArmor.name : 'None (Unarmored)';
@@ -5542,7 +5822,14 @@ class Component extends DCLogic {
       hpMinus: () => this.adjustHP(-1), hpPlus: () => this.adjustHP(1),
       setHPCurrent: (e) => this.setHPField('hpCurrent', e.target.value),
       acValue: ac, acAuto, acOverrideVal: char.acOverride, setACOverrideField: (e) => this.setACOverride(e.target.value),
-      equippedArmorName, equippedArmorMeta,
+      equippedArmorName, equippedArmorMeta, armorRuneSummary, armorRuneIconStyle: 'font-size:16px' + (armorRuneSummary === 'No runes' ? '' : ';color:var(--color-accent-300)'),
+      showArmorRuneModal: s.showArmorRuneModal, openArmorRuneModal: this.openArmorRuneModal, closeArmorRuneModal: this.closeArmorRuneModal,
+      armorRuneTabs, armorRuneRows, armorRuneDetail, hasNoArmorRuneRows: armorRuneRows.length === 0, armorRuneSlotLabel,
+      armorRuneSearch: s.armorRuneSearch || '', setArmorRuneSearch: this.setArmorRuneSearchField, toggleSelectedArmorRune: this.toggleSelectedArmorRune,
+      shieldRuneSummary, shieldRuneIconStyle: 'font-size:16px' + (shieldRuneSummary === 'No runes' ? '' : ';color:var(--color-accent-300)'),
+      showShieldRuneModal: s.showShieldRuneModal, openShieldRuneModal: this.openShieldRuneModal, closeShieldRuneModal: this.closeShieldRuneModal,
+      shieldRuneRows, shieldRuneDetail, hasNoShieldRuneRows: shieldRuneRows.length === 0,
+      shieldRuneSearch: s.shieldRuneSearch || '', setShieldRuneSearch: this.setShieldRuneSearchField, toggleSelectedShieldRune: this.toggleSelectedShieldRune,
       showArmorModal: s.showArmorModal, openArmorModal: this.openArmorModal, closeArmorModal: this.closeArmorModal,
       armorTabs, armorRows, armorDetail, hasNoArmorRows: armorRows.length === 0,
       armorSearch: s.armorSearch || '', setArmorSearch: this.setArmorSearchField, toggleSelectedArmor: this.toggleSelectedArmor,
@@ -5621,7 +5908,7 @@ class Component extends DCLogic {
       showShieldModal: s.showShieldModal, openShieldModal: this.openShieldModal, closeShieldModal: this.closeShieldModal,
       shieldRows, shieldDetail, hasNoShieldRows: shieldRows.length === 0, equippedShieldName: char.shieldKey || 'None',
       shieldSearch: s.shieldSearch || '', setShieldSearch: this.setShieldSearchField, toggleSelectedShield: this.toggleSelectedShield,
-      hasShield: !!shield, shieldAcBonus: shield ? shield.acBonus : 0, shieldHardness: shield ? shield.hardness : 0, shieldBt: shield ? shield.bt : 0,
+      hasShield: !!shield, shieldAcBonus: shield ? shield.acBonus : 0, shieldHardness, shieldBt: shieldBtValue,
       shieldHpCurrent, shieldHpMax, shieldBroken,
       setShieldHPCurrent: (e) => this.setShieldHPField(e.target.value),
       fullHealShield: this.fullHealShield, healShield: this.healShield, damageShield: this.damageShield,
